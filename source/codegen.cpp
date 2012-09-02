@@ -10,8 +10,16 @@ void codegen(Expr* expr, std::ostream& out) {
             codegen(static_cast<BinaryExpr*>(expr), out);
             break;
         
+        case ExprType::Number:
+            codegen(static_cast<NumberLiteral*>(expr), out);
+            break;
+        
         case ExprType::Unspecified: break;
     }
+}
+
+void codegen(NumberLiteral* literal, std::ostream& out) {    
+    out << literal->toString();
 }
 
 void codegen(BinaryExpr* expr, std::ostream& out) {    
