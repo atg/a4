@@ -1,0 +1,18 @@
+Operators should be given in this order, so as not to get confused
+
+Indented lines are currently probationary
+
+&& ||
+in is == != < > <= >=
+  or
+  xor
+  and
+  << >> >>>
++ -
+* / mod
+- !
+**
+.
+x[i] f(x)
+(...)
+

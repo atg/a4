@@ -4,6 +4,7 @@
 
 struct Token {
     int type;
+    int location;
     const char* payloadStart;
     const char* payloadEnd;
 };

@@ -5,11 +5,13 @@ ParseTree parse(const std::deque<Token>& tokens) {
     
     //Set up lemon
     void* lemon = ParseAlloc(malloc);
+    // ParseTrace(stderr, (char*)"");
     
     //Output
     ParseTree parsetree;
     
     for (Token token : tokens) {
+        // printf("    Token %d at %d\n", token.type, token.location);
         Parse(lemon, token.type, token, &parsetree);
     }
     

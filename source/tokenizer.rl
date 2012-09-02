@@ -6,6 +6,7 @@
   tok.type = t; \
   tok.payloadStart = ts; \
   tok.payloadEnd = te; \
+  tok.location = ts - data; \
   tokens.push_back(tok);
 
 %%{
@@ -21,7 +22,30 @@ main := |*
     "/" { EMIT(SLASH); };
     "**" { EMIT(STARSTAR); };
     
+    "==" { EMIT(EQEQ); };
+    "!=" { EMIT(EXCLAIMEQ); };
+    "<" { EMIT(LT); };
+    ">" { EMIT(LT); };
+    "<=" { EMIT(LTEQ); };
+    ">=" { EMIT(GTEQ); };
+    
+    "&&" { EMIT(ANDAND); };
+    "||" { EMIT(BARBAR); };
+    
+    "(" { EMIT(LPAREN); };
+    ")" { EMIT(RPAREN); };
+    "=" { EMIT(EQ); };
+    "," { EMIT(COMMA); };
+    
+    "mod" { EMIT(MOD); };
+    "is" { EMIT(IS); };
+    "in" { EMIT(IN); };
+    
     "-"? digit+ { EMIT(NUMBER); };
+    
+    # [A-Z_][A-Z0-9_]* { EMIT(UPPERIDENT); };
+    [a-z_][a-zA-Z0-9_]* { EMIT(IDENT); };
+    # [A-Z_][a-zA-Z0-9_]* { EMIT(TITLEIDENT); };    
     
     # Ignore whitespace
     space+ { };

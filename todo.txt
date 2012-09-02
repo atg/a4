@@ -1,0 +1,3 @@
+Implement chained comparisons
+    A == B < C >= D != E
+
