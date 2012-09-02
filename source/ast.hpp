@@ -1,5 +1,8 @@
+#import <string>
 #import <cassert>
-#import "tokentypes.hpp"
+#import <cstdio>
+#import <cstdlib>
+#import "tokenizer.hpp"
 
 struct Expr;
 
@@ -34,17 +37,24 @@ struct NumberLiteral : public Expr {
     uint64_t exponent;
     
     NumberLiteral(std::string furclass, bool s, uint64_t c, uint64_t e)
-      : furrow_class(furclass), sign(s), coefficient(c), exponent(e) { }
+      : furrow_class(furclass), sign(s), coefficient(c), exponent(e) {
+          type = ExprType::Number;
+      }
     
-    static NumberLiteral parse(Token tok) {
+    static NumberLiteral* parse(Token tok) {
         
+        
+        bool s = false;
         // TODO: Support non-ints (exponent != 0)
-        // TODO: Use something other than strtoul so that it does 64-bit always
         if (tok.payloadStart[0] == '-') {
-            sign = true;
+            s = true;
             tok.payloadStart++;
         }
-        coefficient = strtoul(tok.payloadStart, tok.payloadEnd, 10);
+        
+        std::string str(tok.payloadStart, tok.payloadEnd);
+        uint64_t coef = std::strtoull(str.c_str(), NULL, 10);
+        
+        return new NumberLiteral("Int", s, coef, 0);
     }
     
     std::string toString() {
@@ -55,11 +65,13 @@ struct NumberLiteral : public Expr {
         
         // TODO: Support non-ints (exponent != 0)
         assert(exponent == 0 && "Non-zero exponents in NumberLiteral::toString() are not yet supported.");
-        
-        str.reserve(100);
+        str.resize(100);
         sprintf(&str[1], "%llu", coefficient);
+        
+        return str;
     }
 };
+
 struct BinaryExpr : public Expr {
     Expr* left;
     Expr* right;

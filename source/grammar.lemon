@@ -33,4 +33,4 @@ expr(A) ::= expr(B) SLASH expr(C). { A = new BinaryExpr(B, OperatorType::Divide,
 expr(A) ::= expr(B) STARSTAR expr(C). { A = new BinaryExpr(B, OperatorType::Power, C); }
 
 // Number
-expr(A) ::= NUMBER(B). { A = new NumberLiteral::parse(B); }
+expr(A) ::= NUMBER(B). { A = static_cast<Expr*>(NumberLiteral::parse(B)); }

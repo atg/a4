@@ -21,6 +21,8 @@ main := |*
     "/" { EMIT(SLASH); };
     "**" { EMIT(STARSTAR); };
     
+    "-"? digit+ { EMIT(NUMBER); };
+    
     # Ignore whitespace
     space+ { };
 *|;

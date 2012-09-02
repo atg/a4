@@ -2,6 +2,7 @@
 
 void codegen(ParseTree tree, std::ostream& out) {
     codegen(tree.expr, out);
+    out << '\n';
 }
 
 void codegen(Expr* expr, std::ostream& out) {
@@ -19,7 +20,7 @@ void codegen(Expr* expr, std::ostream& out) {
 }
 
 void codegen(NumberLiteral* literal, std::ostream& out) {    
-    out << literal->toString();
+    out << (literal->toString());
 }
 
 void codegen(BinaryExpr* expr, std::ostream& out) {    
