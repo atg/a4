@@ -80,7 +80,7 @@ expr(A) ::= expr(B) DOT IDENT(C). { A = new MemberExpr(B, ident2string(C)); }
 expr(A) ::= expr(B) STARSTAR expr(C). { A = new BinaryExpr(B, OperatorType::Power, C); }
 
 // Unary minus and logical not
-expr(A) ::= MINUS expr(B). [UNARYMINUS] { A = new UnaryExpr(B, OperatorType::Negation); }
+expr(A) ::= MINUS expr(B). [UNARYMINUS] { A = new UnaryExpr(B, OperatorType::Negate); }
 expr(A) ::= EXCLAIM expr(B). { A = new UnaryExpr(B, OperatorType::LogicalNot); }
 
 // Multiplicative operations
@@ -118,20 +118,20 @@ expr(A) ::= LCURLY kvpairs(B) RCURLY. { A = new DictLiteral(unpointer(B)); }
 expr(A) ::= LCURLY RCURLY. { A = new DictLiteral(std::deque<std::pair<Expr*, Expr*> >()); }
 expr(A) ::= IDENT(B) COLON expr(C). { A = new FunctionLiteral(singular(ident2string(B)), C); }
 // expr(A) ::= LPAREN idents(B) COLON exprs(C) RPAREN. [LAMBDA] { A = new FunctionLiteral(B, C); }
-expr(A) ::= LPAREN exprs(B) COMMA expr(C) RPAREN. { B->push_back(C); A = new TupleLiteral(B); }
+expr(A) ::= LPAREN exprs(B) COMMA expr(C) RPAREN. { B->push_back(C); A = new TupleLiteral(unpointer(B)); }
 
 expr(A) ::= YES. { A = new BoolLiteral(true); }
 expr(A) ::= NO. { A = new BoolLiteral(false); }
 
 %type exprs {std::deque<Expr*>*}
 exprs(A) ::= exprs(B) COMMA expr(C). { A = B; B->push_back(C); }
-exprs(A) ::= expr(B). { A = new std::deque<std::string>; A->push_back(B); }
+exprs(A) ::= expr(B). { A = new std::deque<Expr*>; A->push_back(B); }
 
 
 // K/V Pairs
 %type kvpairs {std::deque<std::pair<Expr*, Expr*> >*}
 kvpairs(A) ::= kvpairs(B) COMMA kvpair(C). { A = B; B->push_back(unpointer(C)); }
-kvpairs(A) ::= kvpair(B). { A = new std::deque<std::pair<Expr*, Expr*> >; A->push_back(B); }
+kvpairs(A) ::= kvpair(B). { A = new std::deque<std::pair<Expr*, Expr*> >; A->push_back(unpointer(B)); }
 
 %type kvpair {std::pair<Expr*, Expr*>*}
 kvpair(A) ::= expr(B) COLON expr(C). { A = new std::pair<Expr*, Expr*>(B, C); }

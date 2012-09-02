@@ -128,11 +128,11 @@ struct BinaryExpr : public Expr {
     }
 };
 
-struct BinaryExpr : public Expr {
+struct UnaryExpr : public Expr {
     Expr* expr;
     OperatorType op;
 
-    BinaryExpr(Expr* a, OperatorType optype) : expr(a), op(optype) {
+    UnaryExpr(Expr* a, OperatorType optype) : expr(a), op(optype) {
         type = ExprType::Unary;
     }
 };
