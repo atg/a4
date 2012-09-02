@@ -186,6 +186,10 @@ struct StringLiteral : public Expr {
         */
         
     }
+    std::string escapedValue() {
+        // TODO: Do proper escaping
+        return value;
+    }
 };
 
 struct ListLiteral : public Expr {
