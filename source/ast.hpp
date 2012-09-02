@@ -1,3 +1,11 @@
+#import "tokentypes.hpp"
+
+struct Expr;
+
+struct ParseTree {
+    Expr* expr;
+};
+
 enum class ExprType {
     Unspecified = 0,
     Binary,
@@ -13,10 +21,12 @@ enum class OperatorType {
 struct Expr {
     ExprType type;
 };
-struct BinaryExpr : Expr {
+struct BinaryExpr : public Expr {
     Expr* left;
     Expr* right;
     OperatorType op;
     
-    BinaryExpr(Expr* a, OperatorType optype, Expr* b) : type(Binary), left(a), op(optype), right(b) { }
+    BinaryExpr(Expr* a, OperatorType optype, Expr* b) : left(a), op(optype), right(b) {
+        type = ExprType::Binary;
+    }
 };

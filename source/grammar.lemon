@@ -1,12 +1,26 @@
+%include {
+    #import <cassert>
+    
+    #import "ast.hpp"
+    #import "tokenizer.hpp"
+    
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunused-parameter"
+}
+
 // Start out with Exprs
+
+%extra_argument { ParseTree* parsetree }
+%token_type { Token }
 
 %left ADD MINUS.
 %left STAR SLASH.
 %right STARSTAR.
 
+root ::= expr(B). { parsetree->expr = B; }
+
 // Exprs
 %type expr {Expr*}
-
 // Addition
 expr(A) ::= expr(B) ADD expr(C). { A = new BinaryExpr(B, OperatorType::Add, C); }
 // Subtraction

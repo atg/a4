@@ -1,4 +1,4 @@
-import os
+import os, shutil
 import subprocess
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -9,17 +9,17 @@ except:
     pass
 
 # Compile grammar.lemon
-subprocess.call(['deps/lemon', 'source/grammar.lemon'])
-subprocess.call(['mv', 'source/grammar.c' 'source/grammar.cpp'])
-subprocess.call(['mv', 'source/grammar.h' 'source/grammar.hpp'])
-
-# Compile tokenizer.rl
-subprocess.call(['deps/ragel', 'source/tokenizer.rl'])
-subprocess.call(['mv', 'source/tokenizer.c' 'source/tokenizer.cpp'])
-
-# Compile all .cpp files
-allcppfiles = [p for p in os.listdir('source') if os.path.splitext(p) == '.cpp']
-subprocess.call(['clang++', '-Os', '-fno-exceptions', '-fno-rtti', '-Wextra', '-std=c++11'] + allcppfiles)
+if subprocess.check_call(['deps/lemon', 'source/grammar.lemon']) == 0:
+    shutil.move('source/grammar.c', 'source/grammar.cpp')
+    shutil.move('source/grammar.h', 'source/tokentypes.hpp')
+    
+    # Compile tokenizer.rl
+    if subprocess.check_call(['deps/ragel', 'source/tokenizer.rl']) == 0:
+        shutil.move('source/tokenizer.c', 'source/tokenizer.cpp')
+        
+        # Compile all .cpp files
+        allcppfiles = ['source/' + p for p in os.listdir('source') if os.path.splitext(p)[1] == '.cpp']
+        subprocess.check_call(['clang++', '-Os', '-fno-exceptions', '-fno-rtti', '-Wextra', '-std=c++0x', '-o', 'build/fur'] + allcppfiles)
 
 
 '''

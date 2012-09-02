@@ -1,7 +1,14 @@
+#import <deque>
+#import <string>
+
 #import <fstream>
 #import <cstdlib>
 #import <cstdio>
+
 #import "ast.hpp"
+#import "tokenizer.hpp"
+#import "parser.hpp"
+#import "codegen.hpp"
 
 // It pains me to do this
 #import <iostream>
@@ -9,8 +16,8 @@
 const char * const FURROW_VERSION = "0.1";
 
 void help() {
-    fprintf(stderr, "Furrow. A minimalist language. Version %s", FURROW_VERSION);
-    fprintf(stderr, "  fur <inputfile.fur>");
+    fprintf(stderr, "Furrow. A minimalist language. Version %s\n", FURROW_VERSION);
+    fprintf(stderr, "  fur <inputfile.fur>\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -24,10 +31,10 @@ int main(int argc, char *argv[]) {
     
     // Read a file from argv[1]
     std::ifstream f(argv[1], std::ifstream::in);
-    std::string content((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
     
     // Tokenize it
-    std::vector<Token> tokens = tokenize(content);
+    std::deque<Token> tokens = tokenize(content);
     
     // Parse it
     ParseTree parsetree = parse(tokens);

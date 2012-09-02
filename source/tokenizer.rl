@@ -1,10 +1,12 @@
-#import <vector>
+#import <deque>
+#import "tokenizer.hpp"
 
 #define EMIT(t) \
-  Token token; \
-  token.type = t; \
-  token.payloadStart = ts; \
-  token.payloadEnd = te; \
+  Token tok; \
+  tok.type = t; \
+  tok.payloadStart = ts; \
+  tok.payloadEnd = te; \
+  tokens.push_back(tok);
 
 %%{
 
@@ -13,7 +15,7 @@ write data;
 
 main := |*
     
-    "+" { EMIT(PLUS); };
+    "+" { EMIT(ADD); };
     "-" { EMIT(MINUS); };
     "*" { EMIT(STAR); };
     "/" { EMIT(SLASH); };
@@ -25,11 +27,12 @@ main := |*
 
 }%%
 
-
-std::deque<Token> tokenize(const std::string& content)
-{
+std::deque<Token> tokenize(const std::string& content) {
+    
+    std::deque<Token> tokens;
+    
     //Get string data
-    char* data = &(content[0]);
+    char* data = const_cast<char*>(&(content[0]));
     size_t len = content.size();
     
     //Start
@@ -49,5 +52,5 @@ std::deque<Token> tokenize(const std::string& content)
     %% write exec;
     
     //Return the output
-    return output;
+    return tokens;
 }

@@ -1,3 +1,8 @@
+grammar.out
+source/grammar.cpp
+source/tokentypes.hpp
+source/tokenizer.cpp
+
 build
 .DS_Store
 
