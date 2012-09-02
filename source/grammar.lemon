@@ -1,0 +1,20 @@
+// Start out with Exprs
+
+%left ADD MINUS.
+%left STAR SLASH.
+%right STARSTAR.
+
+// Exprs
+%type expr {Expr*}
+
+// Addition
+expr(A) ::= expr(B) ADD expr(C). { A = new BinaryExpr(B, OperatorType::Add, C); }
+// Subtraction
+expr(A) ::= expr(B) MINUS expr(C). { A = new BinaryExpr(B, OperatorType::Subtract, C); }
+// Multiplication
+expr(A) ::= expr(B) STAR expr(C). { A = new BinaryExpr(B, OperatorType::Multiply, C); }
+// Division
+expr(A) ::= expr(B) SLASH expr(C). { A = new BinaryExpr(B, OperatorType::Divide, C); }
+// Exponentiation
+expr(A) ::= expr(B) STARSTAR expr(C). { A = new BinaryExpr(B, OperatorType::Power, C); }
+
