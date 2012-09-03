@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     std::deque<Token> tokens = tokenize(content);
     
     // Parse it
-    ParseTree parsetree = parse(tokens);
+    ParseTree parsetree = parse(clean(tokens));
     
     // Codegen
     codegen(parsetree, std::cout);

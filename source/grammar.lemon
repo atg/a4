@@ -30,7 +30,7 @@
 %extra_argument { ParseTree* parsetree }
 %token_type { Token }
 
-%syntax_error { fprintf(stderr, "Syntax error.\n"); }
+%syntax_error { fprintf(stderr, "Syntax error at char #%d.\n", parsetree->source_location); }
 %parse_failure { fprintf(stderr, "Parser is lost.\n"); }
 
 %left NEWLINE.
@@ -45,6 +45,10 @@
 %left SUBSCRIPT CALL.
 %left GROUPING.
 %left LAMBDA.
+
+// Types
+%right FATARROW ARROW QUESTIONMARK.
+%left TYPE_GROUPING.
 
 root ::= decls0(B). { parsetree->decls = *B; }
 
@@ -97,7 +101,7 @@ expr(A) ::= expr(B) MINUS expr(C). { A = new BinaryExpr(B, OperatorType::Subtrac
 
 // Comparisons and tests
 expr(A) ::= expr(B) IN expr(C). { A = new BinaryExpr(B, OperatorType::In, C); }
-expr(A) ::= expr(B) IS expr(C). { A = new BinaryExpr(B, OperatorType::Is, C); }
+expr(A) ::= expr(B) IS type(C). { A = new IsExpr(B, OperatorType::Is, C); }
 expr(A) ::= expr(B) EQEQ expr(C). { A = new BinaryExpr(B, OperatorType::Equals, C); }
 expr(A) ::= expr(B) EXCLAIMEQ expr(C). { A = new BinaryExpr(B, OperatorType::NotEqual, C); }
 expr(A) ::= expr(B) LT expr(C). { A = new BinaryExpr(B, OperatorType::LessThan, C); }
@@ -140,3 +144,21 @@ kvpair(A) ::= expr(B) COLON expr(C). { A = new std::pair<Expr*, Expr*>(B, C); }
 %type idents {std::deque<std::string>*}
 idents(A) ::= idents(B) COMMA IDENT(C). { A = B; B->push_back(ident2string(C)); }
 idents(A) ::= IDENT(B). { A = new std::deque<std::string>; A->push_back(ident2string(B)); }
+
+
+/********** TYPING **********/
+%type type {Type*}
+type(A) ::= UPPERIDENT(B). { A = new TypeVariable(ident2string(B)); }
+type(A) ::= TITLEIDENT(B). { A = new NamedType(ident2string(B)); }
+type(A) ::= LSQUARE type(B) RSQUARE. { A = new ListType(B); }
+type(A) ::= type(B) FATARROW type(C). { A = new DictType(B, C); }
+type(A) ::= type(B) ARROW type(C). { A = new FunctionType(B, C); }
+type(A) ::= LPAREN types(B) COMMA type(C) RPAREN. { B.push_back(C); A = new TupleType(B); }
+type(A) ::= type(B) QUESTIONMARK. { A = new OptionalType(B); }
+type(A) ::= LPAREN type(B) RPAREN. [TYPE_GROUPING] { A = B; }
+
+%type types {std::deque<Types*>*}
+types(A) ::= types(B) COMMA type(C). { A = B; B->push_back(C); }
+types(A) ::= type(B). { A = new std::deque<Type*>; A->push_back(B); }
+
+

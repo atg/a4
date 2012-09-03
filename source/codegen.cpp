@@ -92,8 +92,16 @@ void codegen(BinaryExpr* expr, std::ostream& out) {
     out << '(';
 
     if (expr->op == OperatorType::Power || expr->op == OperatorType::In || expr->op == OperatorType::Is || expr->op == OperatorType::Mod) {
-
-        out << "std::pow(";
+        
+        if (expr->op == OperatorType::Power)
+            out << "std::pow(";
+        else if (expr->op == OperatorType::In)
+            out << "furrow::contains(";
+        else if (expr->op == OperatorType::Is)
+            out << "furrow::isa(";
+        else if (expr->op == OperatorType::Mod)
+            out << "furrow::mod(";
+        
         codegen(expr->left, out);
         out << ", ";
         codegen(expr->right, out);
@@ -189,13 +197,13 @@ void codegen(SubscriptExpr* expr, std::ostream& out) {
     out << "])";
 }
 void codegen(StringLiteral* expr, std::ostream& out) {    
-    out << '("' << expr->escapedValue() << '")';
+    out << "(\"" << expr->escapedValue() << "\")";
 }
 void codegen(BoolLiteral* expr, std::ostream& out) {    
     if (expr->value) {
-        out << '(true)';
+        out << "(true)";
     }
     else {
-        out << '(false)';
+        out << "(false)";
     }
 }

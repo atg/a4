@@ -16,6 +16,8 @@ write data;
 
 main := |*
     
+    ("\r\n" | "\n" | "\r")+ { EMIT(NEWLINE); };
+    
     "+" { EMIT(ADD); };
     "-" { EMIT(MINUS); };
     "*" { EMIT(STAR); };
@@ -34,18 +36,33 @@ main := |*
     
     "(" { EMIT(LPAREN); };
     ")" { EMIT(RPAREN); };
+    "[" { EMIT(LSQUARE); };
+    "]" { EMIT(RSQUARE); };
+    "{" { EMIT(LCURLY); };
+    "}" { EMIT(RCURLY); };
     "=" { EMIT(EQ); };
     "," { EMIT(COMMA); };
-    
+    "." { EMIT(DOT); };
+    ":" { EMIT(COLON); };
+        
     "mod" { EMIT(MOD); };
     "is" { EMIT(IS); };
     "in" { EMIT(IN); };
+    
+    "!" { EMIT(EXCLAIM); };
+    
+    "yes" | "true" { EMIT(YES); };
+    "no" | "false" { EMIT(NO); };
+    
+    "=>" { EMIT(FATARROW); };
+    "->" { EMIT(ARROW); };
+    "?" { EMIT(QUESTIONMARK); };
     
     "-"? digit+ { EMIT(NUMBER); };
     
     # [A-Z_][A-Z0-9_]* { EMIT(UPPERIDENT); };
     [a-z_][a-zA-Z0-9_]* { EMIT(IDENT); };
-    # [A-Z_][a-zA-Z0-9_]* { EMIT(TITLEIDENT); };    
+    [A-Z_][a-zA-Z0-9_]* { EMIT(TITLEIDENT); };    
     
     # Ignore whitespace
     space+ { };
