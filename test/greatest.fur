@@ -1,0 +1,13 @@
+greatest = maximum
+
+greatest(xs) = xs.foldl(max)
+
+:: [T] -> T
+greatest([]) = []
+greatest(xs) =
+    biggest = xs[0]
+    for x in xs
+        if biggest > x
+            biggest = x
+    biggest
+

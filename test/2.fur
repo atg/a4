@@ -1,0 +1,21 @@
+data Range
+    loc Int
+    len Int
+
+last(r) =
+    if r.len == 0
+        r.loc
+    else
+        r.loc + r.len - 1
+
+end(r) = r.loc + r.len
+
+-- Custom Iterators
+-- Takes an object, returns a function that takes some opaque state, and optionally returns a tuple of an int and the next state to be passed to the function
+:: Range -> Int -> (Int, Int)?
+iter r =
+    state:
+        if state + 1 == r.loc + r.len
+            null
+        else
+            (state + 1, state + 1)

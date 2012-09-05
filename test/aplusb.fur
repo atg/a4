@@ -1,0 +1,5 @@
+include file (stdin, readLine)
+
+main() =
+    total = stdin.readLine().split().map(int).sum()
+    print(total)

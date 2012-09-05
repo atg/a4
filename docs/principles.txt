@@ -1,0 +1,14 @@
+0. A competent programmer should be able to learn the language in an hour. It should fit on one piece of A4 paper.
+1. There should be one -- and preferably only one -- obvious way to do it.
+2. Juxtaposition shall have no place in the grammar.
+3. All conversions, except between Int and Real, shall be explicit.
+4. Only pay for what you use.
+5. If you don't know whether a piece of code will terminate, why are you writing it?
+6. Bliss is 80% functional, 20% imperative.
+7. Turing completeness is overrated.
+8. Data structures should have no cycles, and should preferably form a tree. Reference counting sucks, GCs suck harder and manual memory management is an abomination.
+9. It's fine to make breaking changes, as long as you provide a compiler flag.
+10. Cache is king.
+11. No change is "small".
+12. Consistency is better than aesthetics.
+13. No surprises!

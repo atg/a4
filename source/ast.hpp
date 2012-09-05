@@ -65,7 +65,7 @@ struct Decl {
 };
 
 struct FunctionDecl : public Decl {
-    // Type* signature;
+    // FunctionType* signature;
     std::string name;
     std::deque<std::string> parameters;
     Expr* body;

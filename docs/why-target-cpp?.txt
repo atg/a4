@@ -1,0 +1,65 @@
+Everybody hates C++. People who don't use C++ hate C++. People who use it occasionally hate C++. And perhaps most of all, daily users of C++ of C++.
+
+People hate C++ because it's big. With largeness comes complexity. There is not a single person on the planet who can say they understand C++ completely. The standard is thousands of pages long.
+
+So why would a minimalist language choose to target the world's most complicated programming language? Why not target ASM, LLVM, JVM or even C?
+
+## C++ is everywhere
+
+There are four major C++ compilers. GCC, Clang, MSVC++ and Intel. Additionally, there are many embedded implementations of C++. C++ can run in more places than the JVM or LLVM can.
+
+We have chosen to use many features from C++11, so we are largely limited to GCC and Clang right now. But it is my prediction that in the next 10 years, C++11 support will be the norm, just as C++03 is today.
+
+## C++ has lots of code already
+
+The biggest hurdle in making a new language is giving it *"batteries"*.
+
+C++ already has some batteries included: the standard template library (STL) and other standard libraries. That gives you strings, arrays, linked lists, deques, binary search trees, hash tables, sets, and a whole bunch of algorithms. There are multiple competing implementations of the STL, and they are generally well-tested.
+
+If you need more, there's Boost, a collection of hundreds of libraries.
+
+Here's a game you can play.
+
+1. Think of an algorithm or data structure. For example
+2. Find its wikipedia article.
+3. Go to the "External Links" section.
+4. If there are any implementations in there, it is virtually certain that there will be a C/C++ implementation.
+
+These three points combined mean that C++ has the most and highest quality batteries of any language (except perhaps Python). This makes it trivial to bootstrap Furrow to being a usable language.
+
+## C++ has everything needed to be fast
+
+All new languages want to be fast. Many think that by compiling to C (or worse ASM), they can achieve some magical performance improvement. To some extent this is true. It's hard to create a language as slow as PHP. But 
+
+Generally what makes compiled languages slow is heap allocation.
+
+Allocating and freeing memory is slow. Even just *using* heap allocated memory is slow, because the allocations are at different places in memory, and so don't exploit the CPU caches. There are some ways to avoid this (languages like Java and Haskell make heavy use of arena allocation as part of GC).
+
+Talking of GCs, they're *awful* from a performance perspective. 
+
+C++ is designed to avoid heap allocation more than any other language (even C). C++ is intended to be written so that the only allocation is done by helper classes (string, vector, etc). Most allocations are replaced by *copies*.
+
+The problem is: copying is slow. C++ has that covered too! C++11 has *move semantics* so that excess copies can be eliminated.
+
+All of this combines to make C++ the ideal target language. It has no more overhead than C, and is engineered to require very little heap allocation.
+
+## Objection: C++ code is slower to compile and gives large executables than C
+
+This *can* be true, but can be avoided by:
+
+1. Turning on dead-code stripping
+2. Turning off RTTI
+3. Turning off exceptions
+4. Avoiding unnecessary use of templates
+5. Putting everything in one file/translation unit.
+6. Avoiding unnecessary #includes
+
+These are all easy for a *compiler targeting C++* to solve. There is *always* a tradeoff between compilation speed and executable speed.
+
+## Objection: Compilers targeting C or C++ are not real compilers
+
+People who make this claim have no experience writing compilers. The codegen itself is only a fraction of the work involved. It's asinine that whether something is a "real compiler" or not depends on the target language of the codegen. If it does lexing, parsing, semantic analysis, optimization and codegen then it's a fucking compiler!
+
+As a counterexample: Stalin is an optimizing Scheme compiler that targets C. It is one of the only compilers to generate code *faster than C*. Stalin code has been benchmarked with considerable speedups over human-written C code. I will go as far to say that any language that does *not* compile to LLVM or C will never be as fast as C, since modern C compilers are so advanced.
+
+In the end, the only reason for choosing a lower level target language is faster compilation. This is a subjective decision. The designers of Google Go chose to pursue compilation speed at all costs (even modifying the grammar of the language to make it faster to parse). Personally I think that people are happy to take slower compiles if they get other benefits (faster executables, less development time, better access to libraries, safer type-checking).

@@ -1,0 +1,10 @@
+:: Int -> Int
+grayEncode(n) = xor(n, rshift(n, 1))
+
+:: Int -> Int
+grayDecode(n) =
+    p = n
+    n = rshift(n, 1)
+    while n
+        p = xor(p, n)
+    return p

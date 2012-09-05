@@ -1,0 +1,14 @@
+I've been trying to decide whether the List type should be implemented using std::vector or std::deque.
+
+I've decided on std::vector.
+
+# Pros of std::vector
+
+    Can be used to implement linked lists, ring buffers, hash tables, etc, as a sort of pseudo-pointer. This is especially important in Furrow because there are no references.
+
+    Faster for small collections. In my experience, most collections tend to be small.
+
+# Pros of std::deque
+
+    Faster for large collections. More predictable. Buckets fit in cache. Adding an element is either zero-cost or low-cost, whereas adding an element to a vector can incur a large copy.
+

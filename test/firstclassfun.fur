@@ -1,0 +1,17 @@
+:: T -> T
+cube(x) = x ** 3
+
+:: T -> T
+croot(x) = x ** (1/3)
+
+:: (B -> C), (A -> B) -> (A -> C)
+compose(f, g) = x: f(g(x))
+
+:: [Any -> Any]
+funclist = [sin, cos, cube]
+
+:: [Any -> Any]
+funclisti = [asin, acos, croot]
+
+main() =
+    assert repeat(3, 0.5).map(zipWith(funclist, funclisti, compose)) == [0.5, 0.5, 0.5]

@@ -1,0 +1,42 @@
+data Quaternion
+    re Real
+    i Real
+    j Real
+    k Real
+
+:: Quaternion -> [Real]
+list(h) = [h.re, h.i, h.j, h.k]
+
+:: [Real] -> Quaternion
+quaternion(xs) = Quaternion(xs[0], xs[1], xs[2], xs[3])
+
+:: Quaternion -> Real
+abs h = h.list().map(x: x ** 2).sum().sqrt()
+
+:: Quaternion -> Quaternion
+negate h = h.list().map(negate).quaternion()
+
+:: Quaternion -> Quaternion
+conj h = Quaternion(h.re, -h.i, -h.j, -h.k)
+
+:: (Real, Quaternion) -> Quaternion
+add x, h = Quaternion(x + h.re, h.i, h.j, h.k)
+
+:: (Real, Quaternion) -> Quaternion
+multiply coef, h = h.list().map(hp: coef * hp).quaternion()
+
+:: (Quaternion, Quaternion) -> Quaternion
+multiply h1, h2 =
+    a1, b1, c1, d1 = h1
+    a2, b2, c2, d2 = h2
+    
+    Quaternion(a1 * a2 − b1 * b2 − c1 * c2 − d1 * d2,
+               a1 * b2 + b1 * a2 + c1 * d2 − d1 * c2,
+               a1 * c2 − b1 * d2 + c1 * a2 + d1 * b2,
+               a1 * d2 + b1 * c2 − c1 * b2 + d1 * a2)
+
+main() =
+    h1 = Quaternion(1, 2, 3, 4)
+    h2 = Quaternion(10, 20, 30, 40)
+    
+    assert h1 * h2 != h2 * h1

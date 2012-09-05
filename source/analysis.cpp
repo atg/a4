@@ -1,3 +1,17 @@
+struct Scope {
+    Scope* global;
+    Scope* parent;
+    
+    std::unordered_map<std::string, Decl*> symbols;
+    
+    Decl* find(std::string ident) {
+        // TODO: Optimize. This is a stupidly slow way of doing it
+        if (symbols.count(ident))
+            return symbols[item];
+        return NULL;
+    }
+};
+
 Type* type_of(Expr*) {
     
 }
@@ -29,6 +43,7 @@ Type* type_of(UnaryExpr* expr) {
         
         case OperatorType::Add:
             // Check that the objects are addable
+                // Real, Int, String, 
             return ...;
         case OperatorType::Subtract:
             // Check that the objects are subtractable
@@ -52,6 +67,18 @@ Type* type_of(UnaryExpr* expr) {
             assert(0 && "Unknown BinaryExpr type in type_of");
     }
 }
+bool check_signature(FunctionDecl* decl) {
+    // Make sure that binary operators overloads have the right number of arguments
+    
+    static std::unordered_set<std::string> binaryops({ "&&", "||", "in", "==", "+", "-", "*", "/", "mod", "**" });
+    static std::unordered_set<std::string> unary({ "negate", "||", "in", "==", "+", "-", "*", "/", "mod", "**" });
+    
+    // Other special functions
+    "compare" // (T, T) -> 
+    "negate" // T -> T
+    
+    if (decl)
+}
 Type* type_of(UnaryExpr* expr) {
     if (expr.type == OperatorType::Negate) {
         // Check that the argument is negatable
@@ -67,25 +94,100 @@ Type* type_of(UnaryExpr* expr) {
         assert(0 && "Unknown UnaryExpr type in type_of");
     }
 }
-Type* type_of(CallExpr* call, Scope* scope) {
-    // Find the relevant call for target
-    std::deque<Decl*> candidates;
+Type* type_of(CallExpr* call) {
+    Scope* scope = call->scope;
     
+    // Find the relevant call for target
+    std::deque<std::pair<FunctionDecl*, std::deque<Type*> > > candidates;
+    
+    bool hasArgumentTypes = false;
+    std::deque<Decl*> argumentTypes;
     
     // 1. Find all functions with call->name
     for (Decl* decl : scope.find(call->name)) {
         if (decl.type != DeclType::Function)
             continue;
         
-        // 2. Ignore any functions with the wrong number of arguments
+        FunctionDecl* fdecl = static_cast<FunctionDecl*>(decl);
         
+        // 2. Ignore any functions with the wrong number of arguments
+        // TODO: make this work properly with tuples
+        // if (call->arguments.size() != fdecl->parameters.size())
+            // continue;
+
+        // 3. Find the types of the arguments given to the call
+        if (!hasArgumentTypes) {
+            for (Expr* arg : call->arguments) {
+                argumentTypes.push_back(type_of(arg, scope->global()));
+            }
+        }
+        
+        // 4. Find functions whose arguments match the call
+        std::deque<Type*> parameterTypes;
+        if (fdecl->signature->keytype->type == TypeType:Tuple) {
+            for (Type* itemtype : static_cast<TupleTuple*>(fdecl->signature->keytype)->items) {
+                parameterTypes.push_back(itemtype);
+            }
+        }
+        else {
+            parameterTypes.push_back(fdecl->signature->keytype);
+        }
+        
+        // So, is each argument a subtype of each parameter?
+        for (std::deque<Type*>::iterator
+               arg_it = argumentTypes.begin(),
+               arg_et = parameterTypes.end(),
+               par_it = argumentTypes.begin(),
+               par_et = parameterTypes.end();
+            arg_it != arg_et && par_it != par_et;
+            ++arg_it, ++par_it) {
+                
+                if (!is_subtype_of(*arg_it, *par_it))
+                    continue; // Nope!
+            }
+        
+        candidates.push_back(std::make_pair(fdecl, parameterTypes));
     }
     
-    // 3. Find the types of the arguments given to the call
-    // 4. Find functions whose arguments match the call
     // 5. Remove any functions whose argument types differ from another candidate only by being more generic (e.g. (A, B, Int) vs (A, String, Int) )
-    // 6. If there is not EXACTLY ONE candidate at this point, then error.
+    for (auto candidate : candidates) {
+        for (auto target : candidates) {
+            if (candidate.first == target.first)
+                continue;
+            
+            int generic_pairs = 0;
+            int equal_pairs = 0;
+            for (std::deque<Type*>::iterator
+               can_it = candidate.second.begin(),
+               can_et = candidate.second.end(),
+               tar_it = against_candidate.second.begin(),
+               tar_et = against_candidate.second.end();
+            can_it != can_et && tar_it != tar_et;
+            ++can_it, ++tar_it) {
+                
+                if (is_generic(*can_it) && !is_generic(*tar_it)) {
+                    generic_pairs++;
+                }
+                else if (is_equal(*can_it, *tar_it)) {
+                    equal_pairs++;
+                }
+            }
+            
+            if (generic_pairs + equal_pairs == candidate.second.size()) {
+                // Remove candidate
+                ...
+            }
+        }
+    }
     
+    
+    // 6. If there is not EXACTLY ONE candidate at this point, then error.
+    if (candidates.size() != 1) {
+        // Oopsie
+        return ...;
+    }
+    
+    return candidates[0]->signature->valuetype;
 }
 Type* type_of(SubscriptExpr* subscript) {
     Type* target_type = type_of(target);
@@ -134,11 +236,24 @@ Type* type_of(BoolLiteral* unused) {
     return new NamedType("Bool"); // That was easy
 }
 
-
 bool type_is_list(Type* t, bool allow_optional=true, bool allow_any=true) {
     // Either equal to NamedType("List") or is of TypeType::List
 }
 bool type_is_generic(Type* t) {
     // Generic types are either variables or Any
 }
-
+bool type_is_convertable_to(Type* source, Type* destination) {
+    
+    // We have conversions for
+    //   Dict   --> Function
+    //   T      --> T?
+    //   Int    --> Real
+    //   ...    --> Any
+    //   Tuple <--> data
+    //   Tuple  --> Dict, Function
+    //   data   --> Dict, Function
+    //   List   --> Dict, Function
+    //   [Int]    --> [A]
+    //   (A, A, A) --> [A]
+    // TODO: Work out covariance of functions
+}

@@ -1,0 +1,8 @@
+require path
+
+main() =
+    path.move("input.txt", "output.txt")
+    path.move("docs", "mydocs")
+    
+    path.move("/input.txt", "/output.txt")
+    path.move("/docs", "/mydocs")

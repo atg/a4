@@ -1,0 +1,104 @@
+C++ has three ways to give you an object:
+
+## Borrowing
+
+A const reference (`const T&`) allows you to *borrow* an object.
+
+An object can be borrowed from a caller:
+
+    void foo() {
+        Object x;
+        bar(x);
+    }
+    void bar(const Foo& x) {
+        // Borrow x, as long as it won't change between the start of the function and the end.
+    }
+
+## Transferring
+
+An r-value reference (`T&&`) allows you to *take ownership* of an object.
+
+This is only necessary if the receiver needs to modify the object. If they just need to *read* it, then borrowing is sufficient.
+
+A given object may only be transferred *once*. Therefore ownership tracking is required in order to determine when transferring is appropriate.
+
+For example:
+    
+    void foo() {
+        Object x;
+        x.somefield = 1;
+        bar(x);
+        bar(x);
+        x.somefield = 2;
+        bar(x);
+        x.somefield = 3;
+        bar(x); // x can be transferred HERE
+    }
+
+Closures make this slightly more complex. When a closure borrows an object, the object cannot be transferred until the last call of the closure.
+
+A closure can only borrow an object if it can be proven to not outlive the object it is borrowing. Otherwise it must copy. If a closure copies an object then the object can be transferred without regard to the closure.
+
+- - -
+
+In some cases a reference can be used even if the object is modified. Consider this:
+
+    void foo() {
+        Object x;
+        int n = bar(x);
+        n += baz(x);
+    }
+    int bar(T& x) {
+        x.fieldA = 20;
+        return ...; // Do some calculation involving x
+    }
+    int baz(T& x) {
+        x.fieldB = 20;
+        return ...; // Do some calculation involving x
+    }
+
+As long as bar does not reference fieldA and baz does not mention fieldB and foo does not mention either after bar is called, then we're in the clear. This is a bit of an edge case, but it did give me the idea of...
+
+## Partial Copying
+
+In some cases, we can avoid copying the *whole* object and go with a partial copy. Say you have:
+
+    struct Foo {
+        int a;
+        std::string b;
+        double c;
+        std::vector<int> d;
+    };
+    
+    void foo() {
+        Foo x;
+        
+        // bar() doesn't use b or d so there's no need to copy those
+        Foo y; y.a = x.a; y.c = x.c; // leave b and d uninitialized
+        bar(x);
+        
+        Foo y; y.a = x.a; y.c = x.c; // leave b and d uninitialized
+        bar(x);
+        
+        Foo y; y.a = x.a; y.c = x.c; // leave b and d uninitialized
+        bar(x);
+    }
+    double bar(Foo&& x) {
+        while (whatever) {
+            x.a += x.c - sqrt(x.a);
+            // some calculation involving x.a and x.c
+        }
+        return ...
+    }
+
+
+## Copying
+
+If neither borrowing or transferring is possible, then an object must be *copied*.
+
+In some cases, copying is more efficient than borrowing or transferring. For ints, floats, and small POD structs a copy is essentially free. On the other hand, references can incur a relatively large trip to to main memory in the worst case.
+
+For larger types copies can be very expensive, so they should be avoided.
+
+
+275

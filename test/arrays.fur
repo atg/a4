@@ -1,0 +1,6 @@
+main() =
+    array = []
+    array.add(1)
+    array.add(2)
+    array[0] = 2
+    print(array[0])

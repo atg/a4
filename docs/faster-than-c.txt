@@ -1,0 +1,34 @@
+It's the holy grail of programming language geeks. Make a language *faster than C*.
+
+First, let me define what I mean by *faster*. I am not talking about "Given infinite time to optimize a specific problem, which language runs the quickest?". This is what the Shootout measures. The question is easy to answer: Assembly is the fastest language by its definition.
+
+What is more interesting is *general performance under normal time constraints*. Most code is not optimized very much, if at all. Programmers simply don't have the time. So the fastest language is the one in which idiomatic code runs quickly.
+
+- - -
+
+To be faster than C, a language has to do two things (and I am deadly serious when I say this):
+
+1. Be faster than C.
+2. Don't be slower than C.
+
+Let me explain. There are many languages "faster than C". Haskell is one of them: it has a great type system, everything is pure and it's written at a very high level, so it definitely has optimizations available to it that C does not.
+
+But Haskell is also *slower* than C. It uses boxing. It uses garbage collection. It's lazy. Haskell isn't slow because it's "high-level", it's slow because it does some really slow things.
+
+On the other end of the spectrum, we have C++. It's definitely not slower than C (not like Haskell or Python is). Its motto is "only pay for what you use". But it's not faster either. Aside from the type system, it really has very few optimizations available to it that C does not.
+
+- - -
+
+So what are some things a langauge can do to be faster than C? And what are some things it shouldn't do?
+
+## Be Faster
+
+* Have a strong type system. C has a rather lax type system. There are many optimizations that can only be done if you know the types involved.
+
+* Target LLVM, C or C++. There is no way you can write a competitive ASM codegen. It's impossible.
+
+* Exploit immutability. One of C's greatest weaknesses is that anything can be changed from anywhere. This *can* be good for performance (by avoiding excessive copying), but there's also a whole class of optimizations you can do if code has no side-effects.
+
+## Don't be slower
+
+* Don't have a GC. Or avoid using it. Cyclic data structures are completely unnecessary. It's always better for each object to have a clear *owner* (or *owners*), because 

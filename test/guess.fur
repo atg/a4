@@ -1,0 +1,16 @@
+import file
+
+main() =
+    n = randInt(1, 100)
+    print("I'm thinking of a number between 1 and 100.")
+    print("Try to guess it:")
+    
+    while 1
+        guess = stdin.readLine()
+        if guess > n
+            print("Too large!")
+        else if guess < n
+            print("Too small!")
+        else
+            print("Just right!")
+            break

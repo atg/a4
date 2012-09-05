@@ -1,0 +1,12 @@
+main() =
+    for i in Range(1, 100)
+        if i.divisibleBy(3)
+            print("Fizz")
+        else if i.divisibleBy(5)
+            print("Buzz")
+        else if i.divisibleBy(15)
+            print("FizzBuzz")
+        else
+            print(i)
+
+

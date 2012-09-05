@@ -1,0 +1,9 @@
+include complex
+
+:: (Complex, Complex, Complex) -> (Complex, Complex)
+quadraticRoots(a, b, c) =
+    d = sqrt(b ** 2 - 4 * a * c)
+    if b.re > 0
+        (2 * c / (-b - d), (-b - d) / (2 * a))
+    else
+        ((-b + d) / (2 * a), (2 * c) / (-b + d))
