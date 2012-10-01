@@ -12,7 +12,7 @@ struct ParseTree {
     // For diagnostic reporting
     int source_location;
     
-    std::vector<std::unique_ptr<Decl>> decls;
+    std::vector<std::shared_ptr<Decl>> decls;
 };
 
 struct Decl {

@@ -59,7 +59,7 @@ main := |*
     "?" { EMIT(QUESTIONMARK); };
     
     digit+ [kM] { EMIT(NUMBER); };
-    "0x" [a-fA-F0-9]+ { EMIT(HEXNUMBER); };
+    # "0x" [a-fA-F0-9]+ { EMIT(HEXNUMBER); };
         
     # [A-Z_][A-Z0-9_]* { EMIT(UPPERIDENT); };
     [a-z_][a-zA-Z0-9_]* { EMIT(IDENT); };

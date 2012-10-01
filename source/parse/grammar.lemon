@@ -26,6 +26,11 @@
         xs.push_back(val);
         return xs;
     }
+    
+    template <typename T>
+    static std::shared_ptr<T> sharedptr(T* p) {
+        return std::shared_ptr<T>(p);
+    }
 }
 
 %extra_argument { ParseTree* parsetree }
@@ -53,18 +58,18 @@
 
 root ::= decls0(B). { parsetree->decls = *B; }
 
-%type decls0 {std::vector<Decl*>*}
+%type decls0 {std::vector<std::shared_ptr<Decl>>*}
 decls0(A) ::= decls(B). { A = B; }
-decls0(A) ::= . { A = new std::vector<Decl*>(); }
+decls0(A) ::= . { A = new std::vector<std::shared_ptr<Decl>>(); }
 
-%type decls {std::vector<Decl*>*}
-decls(A) ::= decls(B) NEWLINE decl(C). { A = B; B->push_back(C); }
-decls(A) ::= decl(B). { A = new std::vector<Decl*>(); A->push_back(B); }
+%type decls {std::vector<std::shared_ptr<Decl>>*}
+decls(A) ::= decls(B) NEWLINE decl(C). { A = B; B->push_back(sharedptr<Decl>(C)); }
+decls(A) ::= decl(B). { A = new std::vector<std::shared_ptr<Decl>>(); A->push_back(sharedptr<Decl>(B)); }
 
 %type decl {Decl*}
 
 // Function Declaration
-decl(A) ::= IDENT(B) LPAREN idents(C) RPAREN EQ expr(D). { A = new FunctionDecl(ident2string(B), C, D); }
+decl(A) ::= IDENT(B) LPAREN idents(C) RPAREN EQ expr(D). { A = new FunctionDecl(ident2string(B), unpointer(C), D); }
 
 
 %type expr {Expr*}
@@ -82,55 +87,57 @@ expr(A) ::= LPAREN expr(B) RPAREN. [GROUPING] { A = B; }
 expr(A) ::= expr(B) DOT IDENT(C). { A = new MemberExpr(B, ident2string(C)); }
 
 // Exponentiation
-expr(A) ::= expr(B) STARSTAR expr(C). { A = new BinaryExpr(B, OperatorType::Power, C); }
+expr(A) ::= expr(B) STARSTAR expr(C). { A = new BinaryExpr(B, BinaryOperator::Power, C); }
 
 // Unary minus and logical not
-expr(A) ::= MINUS expr(B). [UNARYMINUS] { A = new UnaryExpr(B, OperatorType::Negate); }
-expr(A) ::= EXCLAIM expr(B). { A = new UnaryExpr(B, OperatorType::LogicalNot); }
+expr(A) ::= MINUS expr(B). [UNARYMINUS] { A = new UnaryExpr(B, UnaryOperator::Negate); }
+expr(A) ::= EXCLAIM expr(B). { A = new UnaryExpr(B, UnaryOperator::LogicalNot); }
 
 // Multiplicative operations
-expr(A) ::= expr(B) STAR expr(C). { A = new BinaryExpr(B, OperatorType::Multiply, C); }
-expr(A) ::= expr(B) SLASH expr(C). { A = new BinaryExpr(B, OperatorType::Divide, C); }
-expr(A) ::= expr(B) MOD expr(C). { A = new BinaryExpr(B, OperatorType::Mod, C); }
+expr(A) ::= expr(B) STAR expr(C). { A = new BinaryExpr(B, BinaryOperator::Multiply, C); }
+expr(A) ::= expr(B) SLASH expr(C). { A = new BinaryExpr(B, BinaryOperator::Divide, C); }
+expr(A) ::= expr(B) MOD expr(C). { A = new BinaryExpr(B, BinaryOperator::Mod, C); }
 
 // Additive operations
-expr(A) ::= expr(B) ADD expr(C). { A = new BinaryExpr(B, OperatorType::Add, C); }
-expr(A) ::= expr(B) MINUS expr(C). { A = new BinaryExpr(B, OperatorType::Subtract, C); }
+expr(A) ::= expr(B) ADD expr(C). { A = new BinaryExpr(B, BinaryOperator::Add, C); }
+expr(A) ::= expr(B) MINUS expr(C). { A = new BinaryExpr(B, BinaryOperator::Subtract, C); }
 
 // Shifts (probationary)
 // Bitwise operations (probationary)
 
 // Comparisons and tests
-expr(A) ::= expr(B) IN expr(C). { A = new BinaryExpr(B, OperatorType::In, C); }
-expr(A) ::= expr(B) IS type(C). { A = new IsExpr(B, OperatorType::Is, C); }
-expr(A) ::= expr(B) EQEQ expr(C). { A = new BinaryExpr(B, OperatorType::Equals, C); }
-expr(A) ::= expr(B) EXCLAIMEQ expr(C). { A = new BinaryExpr(B, OperatorType::NotEqual, C); }
-expr(A) ::= expr(B) LT expr(C). { A = new BinaryExpr(B, OperatorType::LessThan, C); }
-expr(A) ::= expr(B) GT expr(C). { A = new BinaryExpr(B, OperatorType::GreaterThan, C); }
-expr(A) ::= expr(B) LTEQ expr(C). { A = new BinaryExpr(B, OperatorType::LessOrEqual, C); }
-expr(A) ::= expr(B) GTEQ expr(C). { A = new BinaryExpr(B, OperatorType::GreaterOrEqual, C); }
+expr(A) ::= expr(B) IN expr(C). { A = new BinaryExpr(B, BinaryOperator::In, C); }
+expr(A) ::= expr(B) IS type(C). { A = new IsExpr(B, C); }
+expr(A) ::= expr(B) EQEQ expr(C). { A = new BinaryExpr(B, BinaryOperator::Equals, C); }
+expr(A) ::= expr(B) EXCLAIMEQ expr(C). { A = new BinaryExpr(B, BinaryOperator::NotEqual, C); }
+expr(A) ::= expr(B) LT expr(C). { A = new BinaryExpr(B, BinaryOperator::LessThan, C); }
+expr(A) ::= expr(B) GT expr(C). { A = new BinaryExpr(B, BinaryOperator::GreaterThan, C); }
+expr(A) ::= expr(B) LTEQ expr(C). { A = new BinaryExpr(B, BinaryOperator::LessOrEqual, C); }
+expr(A) ::= expr(B) GTEQ expr(C). { A = new BinaryExpr(B, BinaryOperator::GreaterOrEqual, C); }
 
 // Logical
-expr(A) ::= expr(B) ANDAND expr(C). { A = new BinaryExpr(B, OperatorType::LogicalAnd, C); }
-expr(A) ::= expr(B) BARBAR expr(C). { A = new BinaryExpr(B, OperatorType::LogicalOr, C); }
+expr(A) ::= expr(B) ANDAND expr(C). { A = new BinaryExpr(B, BinaryOperator::LogicalAnd, C); }
+expr(A) ::= expr(B) BARBAR expr(C). { A = new BinaryExpr(B, BinaryOperator::LogicalOr, C); }
 
 // Literals
-expr(A) ::= NUMBER(B). { A = static_cast<Expr*>(NumberExpr::parse(B)); }
-expr(A) ::= STRING(B). { A = new StringLiteral(B); }
+expr(A) ::= NUMBER(B). { A = parseNumber(ident2string(B)); }
+expr(A) ::= STRING(B). { A = parseString(ident2string(B)); }
 expr(A) ::= LSQUARE exprs(B) RSQUARE. { A = new ListExpr(unpointer(B)); }
-expr(A) ::= LSQUARE RSQUARE. { A = new ListLiteral(std::vector<std::shared_ptr<Expr>>()); }
+expr(A) ::= LSQUARE RSQUARE. { A = new ListExpr(std::vector<std::shared_ptr<Expr>>()); }
 expr(A) ::= LCURLY kvpairs(B) RCURLY. { A = new DictExpr(unpointer(B)); }
-expr(A) ::= LCURLY RCURLY. { A = new DictLiteral(std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>()); }
+expr(A) ::= LCURLY RCURLY. { A = new DictExpr(std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>()); }
 expr(A) ::= IDENT(B) COLON expr(C). { A = new FunctionExpr(singular(ident2string(B)), C); }
-// expr(A) ::= LPAREN idents(B) COLON exprs(C) RPAREN. [LAMBDA] { A = new FunctionLiteral(B, C); }
-expr(A) ::= LPAREN exprs(B) COMMA expr(C) RPAREN. { B->push_back(C); A = new TupleLiteral(unpointer(B)); }
+// expr(A) ::= LPAREN idents(B) COLON exprs(C) RPAREN. [LAMBDA] { A = new FunctionExpr(B, C); }
+expr(A) ::= LPAREN exprs(B) COMMA expr(C) RPAREN. {
+    B->push_back(sharedptr<Expr>(C));
+    A = new TupleExpr(unpointer(B)); }
 
 expr(A) ::= YES. { A = new BoolExpr(true); }
 expr(A) ::= NO. { A = new BoolExpr(false); }
 
 %type exprs {std::vector<std::shared_ptr<Expr>>*}
-exprs(A) ::= exprs(B) COMMA expr(C). { A = B; B->push_back(C); }
-exprs(A) ::= expr(B). { A = new std::vector<std::shared_ptr<Expr>>; A->push_back(B); }
+exprs(A) ::= exprs(B) COMMA expr(C). { A = B; B->push_back(sharedptr<Expr>(C)); }
+exprs(A) ::= expr(B). { A = new std::vector<std::shared_ptr<Expr>>; A->push_back(sharedptr<Expr>(B)); }
 
 
 // K/V Pairs
@@ -154,12 +161,12 @@ type(A) ::= UPPERIDENT(B).                         { A = new VariableType(ident2
 type(A) ::= LSQUARE type(B) RSQUARE.               { A = new ListType(B); }
 type(A) ::= type(B) FATARROW type(C).              { A = new DictType(B, C); }
 type(A) ::= type(B) ARROW type(C).                 { A = new FunctionType(B, C); }
-type(A) ::= LPAREN types(B) COMMA type(C) RPAREN.  { B.push_back(C); A = new TupleType(B); }
+type(A) ::= LPAREN types(B) COMMA type(C) RPAREN.  { B->push_back(sharedptr<Type>(C)); A = new TupleType(unpointer(B)); }
 type(A) ::= type(B) QUESTIONMARK.                  { A = new OptionalType(B); }
 type(A) ::= LPAREN type(B) RPAREN. [TYPE_GROUPING] { A = B; }
 
-%type types {std::vector<Types*>*}
-types(A) ::= types(B) COMMA type(C). { A = B; B->push_back(C); }
-types(A) ::= type(B). { A = new std::vector<Type*>; A->push_back(B); }
+%type types {std::vector<std::shared_ptr<Type>>*}
+types(A) ::= types(B) COMMA type(C). { A = B; B->push_back(sharedptr<Type>(C)); }
+types(A) ::= type(B). { A = new std::vector<std::shared_ptr<Type>>; A->push_back(sharedptr<Type>(B)); }
 
 

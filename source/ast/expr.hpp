@@ -6,7 +6,11 @@
 #import "parse/tokenizer.hpp"
 
 struct Type;
+struct Expr;
 using ExprPair = std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>;
+
+Expr* parseNumber(std::string number);
+Expr* parseString(std::string str);
 
 enum class BinaryOperator {
     LogicalAnd = ANDAND,
@@ -44,6 +48,7 @@ struct Expr {
         Subscript,
         Variable,
         String,
+        Number,
         List,
         Dict,
         Function,
@@ -53,18 +58,18 @@ struct Expr {
     Kind kind;
 };
 struct BinaryExpr : public Expr {
-    BinaryOperator op;
     std::unique_ptr<Expr> left_ptr;
     Expr& left() { return *left_ptr; }
+    BinaryOperator op;
     std::unique_ptr<Expr> right_ptr;
     Expr& right() { return *right_ptr; }
-    BinaryExpr(BinaryOperator _op, Expr* _left, Expr* _right) : op(_op), left_ptr(_left), right_ptr(_right) { }
+    BinaryExpr(Expr* _left, BinaryOperator _op, Expr* _right) : left_ptr(_left), op(_op), right_ptr(_right) { }
 };
 struct UnaryExpr : public Expr {
+    std::unique_ptr<Expr> expr_ptr;
+    Expr& expr() { return *expr_ptr; }
     UnaryOperator op;
-    std::unique_ptr<Expr> body_ptr;
-    Expr& body() { return *body_ptr; }
-    UnaryExpr(UnaryOperator _op, Expr* _body) : op(_op), body_ptr(_body) { }
+    UnaryExpr(Expr* _expr, UnaryOperator _op) : expr_ptr(_expr), op(_op) { }
 };
 struct MemberExpr : public Expr {
     std::unique_ptr<Expr> target_ptr;
@@ -97,8 +102,16 @@ struct VariableExpr : public Expr {
     VariableExpr(std::string _name) : name(_name) { }
 };
 struct StringExpr : public Expr {
+    std::string src;
     std::string value;
-    StringExpr(std::string _value) : value(_value) { }
+    StringExpr(std::string _src, std::string _value) : src(_src), value(_value) { }
+};
+struct NumberExpr : public Expr {
+    std::string src;
+    bool sign;
+    uint64_t coef;
+    uint64_t exponent;
+    NumberExpr(std::string _src, bool _sign, uint64_t _coef, uint64_t _exponent) : src(_src), sign(_sign), coef(_coef), exponent(_exponent) { }
 };
 struct ListExpr : public Expr {
     std::vector<std::shared_ptr<Expr>> items;
@@ -110,7 +123,9 @@ struct DictExpr : public Expr {
 };
 struct FunctionExpr : public Expr {
     std::vector<std::string> parameters;
-    FunctionExpr(std::vector<std::string> _parameters) : parameters(_parameters) { }
+    std::unique_ptr<Expr> body_ptr;
+    Expr& body() { return *body_ptr; }
+    FunctionExpr(std::vector<std::string> _parameters, Expr* _body) : parameters(_parameters), body_ptr(_body) { }
 };
 struct TupleExpr : public Expr {
     std::vector<std::shared_ptr<Expr>> items;

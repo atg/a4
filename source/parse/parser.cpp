@@ -2,6 +2,14 @@
 #import "parse/grammar.hpp"
 #import "parse/tokenizer.hpp"
 
+// Parse numbers and strings
+Expr* parseNumber(std::string number) {
+    return new NumberExpr(number, false, 42, 0);
+}
+Expr* parseString(std::string str) {
+    return new StringExpr(str, "<placeholder>");
+}
+
 // Token cleaning. Get rid of consecutive newlines, etc
 std::deque<Token> clean(const std::deque<Token>& tokens) {
     std::deque<Token> newTokens(tokens);
