@@ -2,34 +2,36 @@
 #import <cassert>
 #import <cstdio>
 #import <cstdlib>
+#import <vector>
 #import "parse/tokenizer.hpp"
 
-struct Decl;
 struct Expr;
-struct FunctionType;
+struct Decl;
 
 struct ParseTree {
     // For diagnostic reporting
     int source_location;
     
-    std::deque<Decl*> decls;
+    std::vector<std::unique_ptr<Decl>> decls;
 };
 
-enum class DeclType {
-    Unspecified = 0,
-    Function,
-};
 struct Decl {
-    DeclType type;
+    enum class Kind {
+        Function,
+        Constant,
+    };
+    Kind kind;
 };
-
 struct FunctionDecl : public Decl {
-    // FunctionType* signature;
     std::string name;
-    std::deque<std::string> parameters;
-    Expr* body;
-
-    FunctionDecl(std::string name, std::deque<std::string>* parametersptr, Expr* body) : name(name), body(body), parameters(*parametersptr) {
-        type = DeclType::Function;
-    }
+    std::vector<std::string> parameters;
+    std::unique_ptr<Expr> body_ptr;
+    Expr& body() { return *body_ptr; }
+    FunctionDecl(std::string _name, std::vector<std::string> _parameters, Expr* _body) : name(_name), parameters(_parameters), body_ptr(_body) { }
+};
+struct ConstantDecl : public Decl {
+    std::string name;
+    std::unique_ptr<Expr> body_ptr;
+    Expr& body() { return *body_ptr; }
+    ConstantDecl(std::string _name, Expr* _body) : name(_name), body_ptr(_body) { }
 };

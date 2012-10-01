@@ -92,7 +92,6 @@ def generate_replace_function(m):
 def generate_function(m, isCase):
     genname = m.groups()[0]
     geninner = m.groups()[1]
-    print isCase
     # Parse out the template
     if not isCase:
         gentemplate = GENERATE_TEMPLATE_REGEX.findall(geninner)[0]
@@ -111,7 +110,6 @@ def generate_function(m, isCase):
     gencases = []
     for line in geninner.splitlines():
         matchedcase = GENERATE_CASE_REGEX.findall(line)
-        print matchedcase
         if matchedcase:
             currentcase = {}
             gencases.append(currentcase)
@@ -275,8 +273,10 @@ for filepath in filepaths:
         newfilepath = filepath.replace('.adt.', '.')
         
         # Write to it
-        # ...
-        print src
+        if newfilepath != filepath:
+            with open(newfilepath, 'w') as f2:
+                f2.write(src)
+                # print src
         
 
 

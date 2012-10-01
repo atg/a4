@@ -40,5 +40,5 @@
 #define COMMA                          40
 #define YES                            41
 #define NO                             42
-#define TITLEIDENT                     43
-#define UPPERIDENT                     44
+#define UPPERIDENT                     43
+#define TITLEIDENT                     44

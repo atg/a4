@@ -1,6 +1,5 @@
 %include {
     #import <string>
-    #import <vector>
     #import <cassert>
     
     #import "ast/ast.hpp"
@@ -21,8 +20,8 @@
     }
     
     template <typename T>
-    static std::vector<T> singular(T val) {
-        std::vector<T> xs;
+    static std::deque<T> singular(T val) {
+        std::deque<T> xs;
         xs.push_back(val);
         return xs;
     }
@@ -53,13 +52,13 @@
 
 root ::= decls0(B). { parsetree->decls = *B; }
 
-%type decls0 {std::vector<Decl*>*}
+%type decls0 {std::deque<Decl*>*}
 decls0(A) ::= decls(B). { A = B; }
-decls0(A) ::= . { A = new std::vector<Decl*>(); }
+decls0(A) ::= . { A = new std::deque<Decl*>(); }
 
-%type decls {std::vector<Decl*>*}
+%type decls {std::deque<Decl*>*}
 decls(A) ::= decls(B) NEWLINE decl(C). { A = B; B->push_back(C); }
-decls(A) ::= decl(B). { A = new std::vector<Decl*>(); A->push_back(B); }
+decls(A) ::= decl(B). { A = new std::deque<Decl*>(); A->push_back(B); }
 
 %type decl {Decl*}
 
@@ -115,51 +114,51 @@ expr(A) ::= expr(B) ANDAND expr(C). { A = new BinaryExpr(B, OperatorType::Logica
 expr(A) ::= expr(B) BARBAR expr(C). { A = new BinaryExpr(B, OperatorType::LogicalOr, C); }
 
 // Literals
-expr(A) ::= NUMBER(B). { A = static_cast<Expr*>(NumberExpr::parse(B)); }
+expr(A) ::= NUMBER(B). { A = static_cast<Expr*>(NumberLiteral::parse(B)); }
 expr(A) ::= STRING(B). { A = new StringLiteral(B); }
-expr(A) ::= LSQUARE exprs(B) RSQUARE. { A = new ListExpr(unpointer(B)); }
-expr(A) ::= LSQUARE RSQUARE. { A = new ListLiteral(std::vector<std::shared_ptr<Expr>>()); }
-expr(A) ::= LCURLY kvpairs(B) RCURLY. { A = new DictExpr(unpointer(B)); }
-expr(A) ::= LCURLY RCURLY. { A = new DictLiteral(std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>()); }
-expr(A) ::= IDENT(B) COLON expr(C). { A = new FunctionExpr(singular(ident2string(B)), C); }
+expr(A) ::= LSQUARE exprs(B) RSQUARE. { A = new ListLiteral(unpointer(B)); }
+expr(A) ::= LSQUARE RSQUARE. { A = new ListLiteral(std::deque<Expr*>()); }
+expr(A) ::= LCURLY kvpairs(B) RCURLY. { A = new DictLiteral(unpointer(B)); }
+expr(A) ::= LCURLY RCURLY. { A = new DictLiteral(std::deque<std::pair<Expr*, Expr*> >()); }
+expr(A) ::= IDENT(B) COLON expr(C). { A = new FunctionLiteral(singular(ident2string(B)), C); }
 // expr(A) ::= LPAREN idents(B) COLON exprs(C) RPAREN. [LAMBDA] { A = new FunctionLiteral(B, C); }
 expr(A) ::= LPAREN exprs(B) COMMA expr(C) RPAREN. { B->push_back(C); A = new TupleLiteral(unpointer(B)); }
 
-expr(A) ::= YES. { A = new BoolExpr(true); }
-expr(A) ::= NO. { A = new BoolExpr(false); }
+expr(A) ::= YES. { A = new BoolLiteral(true); }
+expr(A) ::= NO. { A = new BoolLiteral(false); }
 
-%type exprs {std::vector<std::shared_ptr<Expr>>*}
+%type exprs {std::deque<Expr*>*}
 exprs(A) ::= exprs(B) COMMA expr(C). { A = B; B->push_back(C); }
-exprs(A) ::= expr(B). { A = new std::vector<std::shared_ptr<Expr>>; A->push_back(B); }
+exprs(A) ::= expr(B). { A = new std::deque<Expr*>; A->push_back(B); }
 
 
 // K/V Pairs
-%type kvpairs {std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>*}
+%type kvpairs {std::deque<std::pair<Expr*, Expr*> >*}
 kvpairs(A) ::= kvpairs(B) COMMA kvpair(C). { A = B; B->push_back(unpointer(C)); }
-kvpairs(A) ::= kvpair(B). { A = new std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>; A->push_back(unpointer(B)); }
+kvpairs(A) ::= kvpair(B). { A = new std::deque<std::pair<Expr*, Expr*> >; A->push_back(unpointer(B)); }
 
-%type kvpair {std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>*}
-kvpair(A) ::= expr(B) COLON expr(C). { A = new std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>(B, C); }
+%type kvpair {std::pair<Expr*, Expr*>*}
+kvpair(A) ::= expr(B) COLON expr(C). { A = new std::pair<Expr*, Expr*>(B, C); }
 
 // Identifiers
-%type idents {std::vector<std::string>*}
+%type idents {std::deque<std::string>*}
 idents(A) ::= idents(B) COMMA IDENT(C). { A = B; B->push_back(ident2string(C)); }
-idents(A) ::= IDENT(B). { A = new std::vector<std::string>; A->push_back(ident2string(B)); }
+idents(A) ::= IDENT(B). { A = new std::deque<std::string>; A->push_back(ident2string(B)); }
 
 
 /********** TYPING **********/
 %type type {Type*}
-type(A) ::= TITLEIDENT(B).                         { A = new NamedType(ident2string(B)); }
-type(A) ::= UPPERIDENT(B).                         { A = new VariableType(ident2string(B)); }
-type(A) ::= LSQUARE type(B) RSQUARE.               { A = new ListType(B); }
-type(A) ::= type(B) FATARROW type(C).              { A = new DictType(B, C); }
-type(A) ::= type(B) ARROW type(C).                 { A = new FunctionType(B, C); }
-type(A) ::= LPAREN types(B) COMMA type(C) RPAREN.  { B.push_back(C); A = new TupleType(B); }
-type(A) ::= type(B) QUESTIONMARK.                  { A = new OptionalType(B); }
+type(A) ::= UPPERIDENT(B). { A = new TypeVariable(ident2string(B)); }
+type(A) ::= TITLEIDENT(B). { A = new NamedType(ident2string(B)); }
+type(A) ::= LSQUARE type(B) RSQUARE. { A = new ListType(B); }
+type(A) ::= type(B) FATARROW type(C). { A = new DictType(B, C); }
+type(A) ::= type(B) ARROW type(C). { A = new FunctionType(B, C); }
+type(A) ::= LPAREN types(B) COMMA type(C) RPAREN. { B.push_back(C); A = new TupleType(B); }
+type(A) ::= type(B) QUESTIONMARK. { A = new OptionalType(B); }
 type(A) ::= LPAREN type(B) RPAREN. [TYPE_GROUPING] { A = B; }
 
-%type types {std::vector<Types*>*}
+%type types {std::deque<Types*>*}
 types(A) ::= types(B) COMMA type(C). { A = B; B->push_back(C); }
-types(A) ::= type(B). { A = new std::vector<Type*>; A->push_back(B); }
+types(A) ::= type(B). { A = new std::deque<Type*>; A->push_back(B); }
 
 

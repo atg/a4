@@ -7,7 +7,6 @@
 #line 1 "source/parse/grammar.lemon"
 
     #import <string>
-    #import <vector>
     #import <cassert>
     
     #import "ast/ast.hpp"
@@ -28,12 +27,12 @@
     }
     
     template <typename T>
-    static std::vector<T> singular(T val) {
-        std::vector<T> xs;
+    static std::deque<T> singular(T val) {
+        std::deque<T> xs;
         xs.push_back(val);
         return xs;
     }
-#line 37 "source/parse/grammar.c"
+#line 36 "source/parse/grammar.c"
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
@@ -90,15 +89,15 @@
 typedef union {
   int yyinit;
   ParseTOKENTYPE yy0;
+  std::deque<Decl*>* yy12;
   Expr* yy20;
   Type* yy29;
-  std::vector<std::shared_ptr<Expr>>* yy43;
-  std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>* yy46;
   Decl* yy55;
-  std::vector<Decl*>* yy61;
-  std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>* yy98;
-  std::vector<std::string>* yy103;
-  std::vector<Types*>* yy112;
+  std::pair<Expr*, Expr*>* yy74;
+  std::deque<std::string>* yy78;
+  std::deque<Expr*>* yy91;
+  std::deque<Types*>* yy92;
+  std::deque<std::pair<Expr*, Expr*> >* yy111;
 } YYMINORTYPE;
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
@@ -360,8 +359,8 @@ static const char *const yyTokenName[] = {
   "QUESTIONMARK",  "TYPE_GROUPING",  "IDENT",         "LPAREN",      
   "RPAREN",        "EQ",            "NUMBER",        "STRING",      
   "LSQUARE",       "RSQUARE",       "LCURLY",        "RCURLY",      
-  "COMMA",         "YES",           "NO",            "TITLEIDENT",  
-  "UPPERIDENT",    "error",         "root",          "decls0",      
+  "COMMA",         "YES",           "NO",            "UPPERIDENT",  
+  "TITLEIDENT",    "error",         "root",          "decls0",      
   "decls",         "decl",          "idents",        "expr",        
   "type",          "exprs",         "kvpairs",       "kvpair",      
   "types",       
@@ -415,8 +414,8 @@ static const char *const yyRuleName[] = {
  /*  40 */ "kvpair ::= expr COLON expr",
  /*  41 */ "idents ::= idents COMMA IDENT",
  /*  42 */ "idents ::= IDENT",
- /*  43 */ "type ::= TITLEIDENT",
- /*  44 */ "type ::= UPPERIDENT",
+ /*  43 */ "type ::= UPPERIDENT",
+ /*  44 */ "type ::= TITLEIDENT",
  /*  45 */ "type ::= LSQUARE type RSQUARE",
  /*  46 */ "type ::= type FATARROW type",
  /*  47 */ "type ::= type ARROW type",
@@ -837,269 +836,269 @@ static void yy_reduce(
   **     break;
   */
       case 0: /* root ::= decls0 */
-#line 54 "source/parse/grammar.lemon"
-{ parsetree->decls = *yymsp[0].minor.yy61; }
-#line 843 "source/parse/grammar.c"
+#line 53 "source/parse/grammar.lemon"
+{ parsetree->decls = *yymsp[0].minor.yy12; }
+#line 842 "source/parse/grammar.c"
         break;
       case 1: /* decls0 ::= decls */
-#line 57 "source/parse/grammar.lemon"
-{ yygotominor.yy61 = yymsp[0].minor.yy61; }
-#line 848 "source/parse/grammar.c"
+#line 56 "source/parse/grammar.lemon"
+{ yygotominor.yy12 = yymsp[0].minor.yy12; }
+#line 847 "source/parse/grammar.c"
         break;
       case 2: /* decls0 ::= */
-#line 58 "source/parse/grammar.lemon"
-{ yygotominor.yy61 = new std::vector<Decl*>(); }
-#line 853 "source/parse/grammar.c"
+#line 57 "source/parse/grammar.lemon"
+{ yygotominor.yy12 = new std::deque<Decl*>(); }
+#line 852 "source/parse/grammar.c"
         break;
       case 3: /* decls ::= decls NEWLINE decl */
-#line 61 "source/parse/grammar.lemon"
-{ yygotominor.yy61 = yymsp[-2].minor.yy61; yymsp[-2].minor.yy61->push_back(yymsp[0].minor.yy55); }
-#line 858 "source/parse/grammar.c"
+#line 60 "source/parse/grammar.lemon"
+{ yygotominor.yy12 = yymsp[-2].minor.yy12; yymsp[-2].minor.yy12->push_back(yymsp[0].minor.yy55); }
+#line 857 "source/parse/grammar.c"
         break;
       case 4: /* decls ::= decl */
-#line 62 "source/parse/grammar.lemon"
-{ yygotominor.yy61 = new std::vector<Decl*>(); yygotominor.yy61->push_back(yymsp[0].minor.yy55); }
-#line 863 "source/parse/grammar.c"
+#line 61 "source/parse/grammar.lemon"
+{ yygotominor.yy12 = new std::deque<Decl*>(); yygotominor.yy12->push_back(yymsp[0].minor.yy55); }
+#line 862 "source/parse/grammar.c"
         break;
       case 5: /* decl ::= IDENT LPAREN idents RPAREN EQ expr */
-#line 67 "source/parse/grammar.lemon"
-{ yygotominor.yy55 = new FunctionDecl(ident2string(yymsp[-5].minor.yy0), yymsp[-3].minor.yy103, yymsp[0].minor.yy20); }
-#line 868 "source/parse/grammar.c"
+#line 66 "source/parse/grammar.lemon"
+{ yygotominor.yy55 = new FunctionDecl(ident2string(yymsp[-5].minor.yy0), yymsp[-3].minor.yy78, yymsp[0].minor.yy20); }
+#line 867 "source/parse/grammar.c"
         break;
       case 6: /* expr ::= LPAREN expr RPAREN */
-#line 73 "source/parse/grammar.lemon"
+#line 72 "source/parse/grammar.lemon"
 { yygotominor.yy20 = yymsp[-1].minor.yy20; }
-#line 873 "source/parse/grammar.c"
+#line 872 "source/parse/grammar.c"
         break;
       case 7: /* expr ::= expr DOT IDENT */
-#line 82 "source/parse/grammar.lemon"
+#line 81 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new MemberExpr(yymsp[-2].minor.yy20, ident2string(yymsp[0].minor.yy0)); }
-#line 878 "source/parse/grammar.c"
+#line 877 "source/parse/grammar.c"
         break;
       case 8: /* expr ::= expr STARSTAR expr */
-#line 85 "source/parse/grammar.lemon"
+#line 84 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::Power, yymsp[0].minor.yy20); }
-#line 883 "source/parse/grammar.c"
+#line 882 "source/parse/grammar.c"
         break;
       case 9: /* expr ::= MINUS expr */
-#line 88 "source/parse/grammar.lemon"
+#line 87 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new UnaryExpr(yymsp[0].minor.yy20, OperatorType::Negate); }
-#line 888 "source/parse/grammar.c"
+#line 887 "source/parse/grammar.c"
         break;
       case 10: /* expr ::= EXCLAIM expr */
-#line 89 "source/parse/grammar.lemon"
+#line 88 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new UnaryExpr(yymsp[0].minor.yy20, OperatorType::LogicalNot); }
-#line 893 "source/parse/grammar.c"
+#line 892 "source/parse/grammar.c"
         break;
       case 11: /* expr ::= expr STAR expr */
-#line 92 "source/parse/grammar.lemon"
+#line 91 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::Multiply, yymsp[0].minor.yy20); }
-#line 898 "source/parse/grammar.c"
+#line 897 "source/parse/grammar.c"
         break;
       case 12: /* expr ::= expr SLASH expr */
-#line 93 "source/parse/grammar.lemon"
+#line 92 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::Divide, yymsp[0].minor.yy20); }
-#line 903 "source/parse/grammar.c"
+#line 902 "source/parse/grammar.c"
         break;
       case 13: /* expr ::= expr MOD expr */
-#line 94 "source/parse/grammar.lemon"
+#line 93 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::Mod, yymsp[0].minor.yy20); }
-#line 908 "source/parse/grammar.c"
+#line 907 "source/parse/grammar.c"
         break;
       case 14: /* expr ::= expr ADD expr */
-#line 97 "source/parse/grammar.lemon"
+#line 96 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::Add, yymsp[0].minor.yy20); }
-#line 913 "source/parse/grammar.c"
+#line 912 "source/parse/grammar.c"
         break;
       case 15: /* expr ::= expr MINUS expr */
-#line 98 "source/parse/grammar.lemon"
+#line 97 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::Subtract, yymsp[0].minor.yy20); }
-#line 918 "source/parse/grammar.c"
+#line 917 "source/parse/grammar.c"
         break;
       case 16: /* expr ::= expr IN expr */
-#line 104 "source/parse/grammar.lemon"
+#line 103 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::In, yymsp[0].minor.yy20); }
-#line 923 "source/parse/grammar.c"
+#line 922 "source/parse/grammar.c"
         break;
       case 17: /* expr ::= expr IS type */
-#line 105 "source/parse/grammar.lemon"
+#line 104 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new IsExpr(yymsp[-2].minor.yy20, OperatorType::Is, yymsp[0].minor.yy29); }
-#line 928 "source/parse/grammar.c"
+#line 927 "source/parse/grammar.c"
         break;
       case 18: /* expr ::= expr EQEQ expr */
-#line 106 "source/parse/grammar.lemon"
+#line 105 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::Equals, yymsp[0].minor.yy20); }
-#line 933 "source/parse/grammar.c"
+#line 932 "source/parse/grammar.c"
         break;
       case 19: /* expr ::= expr EXCLAIMEQ expr */
-#line 107 "source/parse/grammar.lemon"
+#line 106 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::NotEqual, yymsp[0].minor.yy20); }
-#line 938 "source/parse/grammar.c"
+#line 937 "source/parse/grammar.c"
         break;
       case 20: /* expr ::= expr LT expr */
-#line 108 "source/parse/grammar.lemon"
+#line 107 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::LessThan, yymsp[0].minor.yy20); }
-#line 943 "source/parse/grammar.c"
+#line 942 "source/parse/grammar.c"
         break;
       case 21: /* expr ::= expr GT expr */
-#line 109 "source/parse/grammar.lemon"
+#line 108 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::GreaterThan, yymsp[0].minor.yy20); }
-#line 948 "source/parse/grammar.c"
+#line 947 "source/parse/grammar.c"
         break;
       case 22: /* expr ::= expr LTEQ expr */
-#line 110 "source/parse/grammar.lemon"
+#line 109 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::LessOrEqual, yymsp[0].minor.yy20); }
-#line 953 "source/parse/grammar.c"
+#line 952 "source/parse/grammar.c"
         break;
       case 23: /* expr ::= expr GTEQ expr */
-#line 111 "source/parse/grammar.lemon"
+#line 110 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::GreaterOrEqual, yymsp[0].minor.yy20); }
-#line 958 "source/parse/grammar.c"
+#line 957 "source/parse/grammar.c"
         break;
       case 24: /* expr ::= expr ANDAND expr */
-#line 114 "source/parse/grammar.lemon"
+#line 113 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::LogicalAnd, yymsp[0].minor.yy20); }
-#line 963 "source/parse/grammar.c"
+#line 962 "source/parse/grammar.c"
         break;
       case 25: /* expr ::= expr BARBAR expr */
-#line 115 "source/parse/grammar.lemon"
+#line 114 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new BinaryExpr(yymsp[-2].minor.yy20, OperatorType::LogicalOr, yymsp[0].minor.yy20); }
-#line 968 "source/parse/grammar.c"
+#line 967 "source/parse/grammar.c"
         break;
       case 26: /* expr ::= NUMBER */
-#line 118 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = static_cast<Expr*>(NumberExpr::parse(yymsp[0].minor.yy0)); }
-#line 973 "source/parse/grammar.c"
+#line 117 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = static_cast<Expr*>(NumberLiteral::parse(yymsp[0].minor.yy0)); }
+#line 972 "source/parse/grammar.c"
         break;
       case 27: /* expr ::= STRING */
-#line 119 "source/parse/grammar.lemon"
+#line 118 "source/parse/grammar.lemon"
 { yygotominor.yy20 = new StringLiteral(yymsp[0].minor.yy0); }
-#line 978 "source/parse/grammar.c"
+#line 977 "source/parse/grammar.c"
         break;
       case 28: /* expr ::= LSQUARE exprs RSQUARE */
-#line 120 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = new ListExpr(unpointer(yymsp[-1].minor.yy43)); }
-#line 983 "source/parse/grammar.c"
+#line 119 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = new ListLiteral(unpointer(yymsp[-1].minor.yy91)); }
+#line 982 "source/parse/grammar.c"
         break;
       case 29: /* expr ::= LSQUARE RSQUARE */
-#line 121 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = new ListLiteral(std::vector<std::shared_ptr<Expr>>()); }
-#line 988 "source/parse/grammar.c"
+#line 120 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = new ListLiteral(std::deque<Expr*>()); }
+#line 987 "source/parse/grammar.c"
         break;
       case 30: /* expr ::= LCURLY kvpairs RCURLY */
-#line 122 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = new DictExpr(unpointer(yymsp[-1].minor.yy98)); }
-#line 993 "source/parse/grammar.c"
+#line 121 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = new DictLiteral(unpointer(yymsp[-1].minor.yy111)); }
+#line 992 "source/parse/grammar.c"
         break;
       case 31: /* expr ::= LCURLY RCURLY */
-#line 123 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = new DictLiteral(std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>()); }
-#line 998 "source/parse/grammar.c"
+#line 122 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = new DictLiteral(std::deque<std::pair<Expr*, Expr*> >()); }
+#line 997 "source/parse/grammar.c"
         break;
       case 32: /* expr ::= IDENT COLON expr */
-#line 124 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = new FunctionExpr(singular(ident2string(yymsp[-2].minor.yy0)), yymsp[0].minor.yy20); }
-#line 1003 "source/parse/grammar.c"
+#line 123 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = new FunctionLiteral(singular(ident2string(yymsp[-2].minor.yy0)), yymsp[0].minor.yy20); }
+#line 1002 "source/parse/grammar.c"
         break;
       case 33: /* expr ::= LPAREN exprs COMMA expr RPAREN */
-#line 126 "source/parse/grammar.lemon"
-{ yymsp[-3].minor.yy43->push_back(yymsp[-1].minor.yy20); yygotominor.yy20 = new TupleLiteral(unpointer(yymsp[-3].minor.yy43)); }
-#line 1008 "source/parse/grammar.c"
+#line 125 "source/parse/grammar.lemon"
+{ yymsp[-3].minor.yy91->push_back(yymsp[-1].minor.yy20); yygotominor.yy20 = new TupleLiteral(unpointer(yymsp[-3].minor.yy91)); }
+#line 1007 "source/parse/grammar.c"
         break;
       case 34: /* expr ::= YES */
-#line 128 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = new BoolExpr(true); }
-#line 1013 "source/parse/grammar.c"
+#line 127 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = new BoolLiteral(true); }
+#line 1012 "source/parse/grammar.c"
         break;
       case 35: /* expr ::= NO */
-#line 129 "source/parse/grammar.lemon"
-{ yygotominor.yy20 = new BoolExpr(false); }
-#line 1018 "source/parse/grammar.c"
+#line 128 "source/parse/grammar.lemon"
+{ yygotominor.yy20 = new BoolLiteral(false); }
+#line 1017 "source/parse/grammar.c"
         break;
       case 36: /* exprs ::= exprs COMMA expr */
-#line 132 "source/parse/grammar.lemon"
-{ yygotominor.yy43 = yymsp[-2].minor.yy43; yymsp[-2].minor.yy43->push_back(yymsp[0].minor.yy20); }
-#line 1023 "source/parse/grammar.c"
+#line 131 "source/parse/grammar.lemon"
+{ yygotominor.yy91 = yymsp[-2].minor.yy91; yymsp[-2].minor.yy91->push_back(yymsp[0].minor.yy20); }
+#line 1022 "source/parse/grammar.c"
         break;
       case 37: /* exprs ::= expr */
-#line 133 "source/parse/grammar.lemon"
-{ yygotominor.yy43 = new std::vector<std::shared_ptr<Expr>>; yygotominor.yy43->push_back(yymsp[0].minor.yy20); }
-#line 1028 "source/parse/grammar.c"
+#line 132 "source/parse/grammar.lemon"
+{ yygotominor.yy91 = new std::deque<Expr*>; yygotominor.yy91->push_back(yymsp[0].minor.yy20); }
+#line 1027 "source/parse/grammar.c"
         break;
       case 38: /* kvpairs ::= kvpairs COMMA kvpair */
-#line 138 "source/parse/grammar.lemon"
-{ yygotominor.yy98 = yymsp[-2].minor.yy98; yymsp[-2].minor.yy98->push_back(unpointer(yymsp[0].minor.yy46)); }
-#line 1033 "source/parse/grammar.c"
+#line 137 "source/parse/grammar.lemon"
+{ yygotominor.yy111 = yymsp[-2].minor.yy111; yymsp[-2].minor.yy111->push_back(unpointer(yymsp[0].minor.yy74)); }
+#line 1032 "source/parse/grammar.c"
         break;
       case 39: /* kvpairs ::= kvpair */
-#line 139 "source/parse/grammar.lemon"
-{ yygotominor.yy98 = new std::vector<std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>>; yygotominor.yy98->push_back(unpointer(yymsp[0].minor.yy46)); }
-#line 1038 "source/parse/grammar.c"
+#line 138 "source/parse/grammar.lemon"
+{ yygotominor.yy111 = new std::deque<std::pair<Expr*, Expr*> >; yygotominor.yy111->push_back(unpointer(yymsp[0].minor.yy74)); }
+#line 1037 "source/parse/grammar.c"
         break;
       case 40: /* kvpair ::= expr COLON expr */
-#line 142 "source/parse/grammar.lemon"
-{ yygotominor.yy46 = new std::pair<std::shared_ptr<Expr>, std::shared_ptr<Expr>>(yymsp[-2].minor.yy20, yymsp[0].minor.yy20); }
-#line 1043 "source/parse/grammar.c"
+#line 141 "source/parse/grammar.lemon"
+{ yygotominor.yy74 = new std::pair<Expr*, Expr*>(yymsp[-2].minor.yy20, yymsp[0].minor.yy20); }
+#line 1042 "source/parse/grammar.c"
         break;
       case 41: /* idents ::= idents COMMA IDENT */
-#line 146 "source/parse/grammar.lemon"
-{ yygotominor.yy103 = yymsp[-2].minor.yy103; yymsp[-2].minor.yy103->push_back(ident2string(yymsp[0].minor.yy0)); }
-#line 1048 "source/parse/grammar.c"
+#line 145 "source/parse/grammar.lemon"
+{ yygotominor.yy78 = yymsp[-2].minor.yy78; yymsp[-2].minor.yy78->push_back(ident2string(yymsp[0].minor.yy0)); }
+#line 1047 "source/parse/grammar.c"
         break;
       case 42: /* idents ::= IDENT */
-#line 147 "source/parse/grammar.lemon"
-{ yygotominor.yy103 = new std::vector<std::string>; yygotominor.yy103->push_back(ident2string(yymsp[0].minor.yy0)); }
-#line 1053 "source/parse/grammar.c"
+#line 146 "source/parse/grammar.lemon"
+{ yygotominor.yy78 = new std::deque<std::string>; yygotominor.yy78->push_back(ident2string(yymsp[0].minor.yy0)); }
+#line 1052 "source/parse/grammar.c"
         break;
-      case 43: /* type ::= TITLEIDENT */
+      case 43: /* type ::= UPPERIDENT */
+#line 151 "source/parse/grammar.lemon"
+{ yygotominor.yy29 = new TypeVariable(ident2string(yymsp[0].minor.yy0)); }
+#line 1057 "source/parse/grammar.c"
+        break;
+      case 44: /* type ::= TITLEIDENT */
 #line 152 "source/parse/grammar.lemon"
 { yygotominor.yy29 = new NamedType(ident2string(yymsp[0].minor.yy0)); }
-#line 1058 "source/parse/grammar.c"
-        break;
-      case 44: /* type ::= UPPERIDENT */
-#line 153 "source/parse/grammar.lemon"
-{ yygotominor.yy29 = new VariableType(ident2string(yymsp[0].minor.yy0)); }
-#line 1063 "source/parse/grammar.c"
+#line 1062 "source/parse/grammar.c"
         break;
       case 45: /* type ::= LSQUARE type RSQUARE */
-#line 154 "source/parse/grammar.lemon"
+#line 153 "source/parse/grammar.lemon"
 { yygotominor.yy29 = new ListType(yymsp[-1].minor.yy29); }
-#line 1068 "source/parse/grammar.c"
+#line 1067 "source/parse/grammar.c"
         break;
       case 46: /* type ::= type FATARROW type */
-#line 155 "source/parse/grammar.lemon"
+#line 154 "source/parse/grammar.lemon"
 { yygotominor.yy29 = new DictType(yymsp[-2].minor.yy29, yymsp[0].minor.yy29); }
-#line 1073 "source/parse/grammar.c"
+#line 1072 "source/parse/grammar.c"
         break;
       case 47: /* type ::= type ARROW type */
-#line 156 "source/parse/grammar.lemon"
+#line 155 "source/parse/grammar.lemon"
 { yygotominor.yy29 = new FunctionType(yymsp[-2].minor.yy29, yymsp[0].minor.yy29); }
-#line 1078 "source/parse/grammar.c"
+#line 1077 "source/parse/grammar.c"
         break;
       case 48: /* type ::= LPAREN types COMMA type RPAREN */
-#line 157 "source/parse/grammar.lemon"
-{ yymsp[-3].minor.yy112.push_back(yymsp[-1].minor.yy29); yygotominor.yy29 = new TupleType(yymsp[-3].minor.yy112); }
-#line 1083 "source/parse/grammar.c"
+#line 156 "source/parse/grammar.lemon"
+{ yymsp[-3].minor.yy92.push_back(yymsp[-1].minor.yy29); yygotominor.yy29 = new TupleType(yymsp[-3].minor.yy92); }
+#line 1082 "source/parse/grammar.c"
         break;
       case 49: /* type ::= type QUESTIONMARK */
-#line 158 "source/parse/grammar.lemon"
+#line 157 "source/parse/grammar.lemon"
 { yygotominor.yy29 = new OptionalType(yymsp[-1].minor.yy29); }
-#line 1088 "source/parse/grammar.c"
+#line 1087 "source/parse/grammar.c"
         break;
       case 50: /* type ::= LPAREN type RPAREN */
-#line 159 "source/parse/grammar.lemon"
+#line 158 "source/parse/grammar.lemon"
 { yygotominor.yy29 = yymsp[-1].minor.yy29; }
-#line 1093 "source/parse/grammar.c"
+#line 1092 "source/parse/grammar.c"
         break;
       case 51: /* types ::= types COMMA type */
-#line 162 "source/parse/grammar.lemon"
-{ yygotominor.yy112 = yymsp[-2].minor.yy112; yymsp[-2].minor.yy112->push_back(yymsp[0].minor.yy29); }
-#line 1098 "source/parse/grammar.c"
+#line 161 "source/parse/grammar.lemon"
+{ yygotominor.yy92 = yymsp[-2].minor.yy92; yymsp[-2].minor.yy92->push_back(yymsp[0].minor.yy29); }
+#line 1097 "source/parse/grammar.c"
         break;
       case 52: /* types ::= type */
-#line 163 "source/parse/grammar.lemon"
-{ yygotominor.yy112 = new std::vector<Type*>; yygotominor.yy112->push_back(yymsp[0].minor.yy29); }
-#line 1103 "source/parse/grammar.c"
+#line 162 "source/parse/grammar.lemon"
+{ yygotominor.yy92 = new std::deque<Type*>; yygotominor.yy92->push_back(yymsp[0].minor.yy29); }
+#line 1102 "source/parse/grammar.c"
         break;
       default:
         break;
@@ -1147,9 +1146,9 @@ static void yy_parse_failed(
   while( yypParser->yyidx>=0 ) yy_pop_parser_stack(yypParser);
   /* Here code is inserted which will be executed whenever the
   ** parser fails */
-#line 35 "source/parse/grammar.lemon"
+#line 34 "source/parse/grammar.lemon"
  fprintf(stderr, "Parser is lost.\n"); 
-#line 1153 "source/parse/grammar.c"
+#line 1152 "source/parse/grammar.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 #endif /* YYNOERRORRECOVERY */
@@ -1164,9 +1163,9 @@ static void yy_syntax_error(
 ){
   ParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 34 "source/parse/grammar.lemon"
+#line 33 "source/parse/grammar.lemon"
  fprintf(stderr, "Syntax error at char #%d.\n", parsetree->source_location); 
-#line 1170 "source/parse/grammar.c"
+#line 1169 "source/parse/grammar.c"
   ParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

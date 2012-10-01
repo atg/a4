@@ -41,4 +41,3 @@
 #define YES                            41
 #define NO                             42
 #define TITLEIDENT                     43
-#define UPPERIDENT                     44
