@@ -55,11 +55,20 @@ DATA_INNARDS_REGEX = re.compile(r'\s*([a-zA-Z0-9_]+)\s*\(([^\)]*)\)')
 
 
 GENERATE_END_REGEX = re.compile(r'%generate\s+([a-zA-Z0-9_]+)\n([\s\S]+?)\n%end\n')
+GENERATE_TEMPLATE_REGEX = re.compile(r'%template\s+([^\n]+)\n')
+GENERATE_CALL_TEMPLATE_REGEX = re.compile(r'%call\s+([^\n]+)\n')
+#GENERATE_CASE_REGEX = re.compile(r'%case\s+([^\s+]+)\s+([^\s+]+)\n([^\n]+)\n%')
+GENERATE_CASE_REGEX = re.compile(r'%%case\s+([^\s+]+)\s+([^\s+]+)')
 #DATA_INNARDS_REGEX = re.compile(r'\s*([a-zA-Z0-9_]+)\s*\(([^\)]*)\)')
 
 # Step one, walk the given directory to find .adt.cpp and .adt.hpp files
 rootdir = sys.argv[1]
 os.chdir(rootdir)
+
+def capitalized(s):
+    if not s:
+        return s
+    return s[0].capitalize() + s[1:]
 
 filepaths = []
 for root, dirs, files in os.walk('.'):
@@ -76,7 +85,60 @@ def data_parse_function(m):
 def data_replace_function(m):
     return data_function(m, False)
 def generate_replace_function(m):
-    return 'blah'
+    genname = m.groups()[0]
+    geninner = m.groups()[1]
+    
+    # Parse out the template
+    gentemplate = GENERATE_TEMPLATE_REGEX.findall(geninner)[0]
+    gencalltemplate = GENERATE_CALL_TEMPLATE_REGEX.findall(geninner)
+    if not gencalltemplate:
+        funcname = re.findall(r'\s+([a-zA-Z0-9_]+)\(', gentemplate)[0]
+        gencalltemplate = funcname + '($$)'
+    else:
+        gencalltemplate = gencalltemplate[0]
+    
+    # Replace the $$
+    template_function = lambda tname, aname: gentemplate.replace('$$', tname + '& ' + aname)
+    
+    # Parse out the cases
+    currentcase = None
+    gencases = []
+    for line in geninner.splitlines():
+        matchedcase = GENERATE_CASE_REGEX.findall(line)
+        if matchedcase:
+            currentcase = {}
+            gencases.append(currentcase)
+            currentcase['type'] = matchedcase[0][0]
+            currentcase['name'] = matchedcase[0][1]
+            currentcase['body'] = ''
+            
+        elif currentcase:
+            currentcase['body'] += line + '\n'
+    
+    
+    returner = ''
+    if not gentemplate.startswith('void '):
+        returner = 'return '
+    
+    # Generate the main function
+    output = template_function(genname, genname.lower()) + '{\n'
+    output += '    switch (%s.kind) {\n' % genname.lower()
+    for case in gencases:
+        output += '      case %s::Kind::%s:\n' % (genname, case['type'])
+        
+        invocation = gencalltemplate.replace('$$', 'static_cast<%s&>(%s)' % (case['type'] + genname, genname.lower()))
+        
+        output += '        %s%s;\n' % (returner, invocation)
+    output += '    }\n'
+    output += '}\n'
+    
+    # Generate the other functions
+    for case in gencases:
+        output += template_function(case['type'] + genname, case['name']) + '{\n'
+        output += case['body']
+        output += '}\n'
+    
+    return output
 
 def data_function(m, shouldadd):
     dataname = m.groups()[0]
@@ -84,9 +146,15 @@ def data_function(m, shouldadd):
     
     tags = []
     for matchgroup in DATA_INNARDS_REGEX.findall(datainner):
-        args = matchgroup[1].split(',')
-        args = [ tuple(arg.strip().split()) for arg in args ]
-        args = [ arg for arg in args if arg ]
+        args = []
+        for arg in matchgroup[1].split(','):
+            type_and_name = arg.strip().split()
+            if not type_and_name:
+                continue
+            args.append({
+                'type': type_and_name[0],
+                'name': type_and_name[1]
+            })
         
         tags.append({
             'name': matchgroup[0],
@@ -108,25 +176,52 @@ def data_function(m, shouldadd):
         output  = 'struct %s {\n' % dataname
         output += '    enum class Kind {\n'
         for tag in tags:
-            output += '        %s,\n' % tag['name'].title()
+            output += '        %s,\n' % capitalized(tag['name'])
         output += '    };\n'
         output += '    Kind kind;\n'
         output += '};\n'
         
         for tag in tags:
-            output += 'struct %s%s {\n' % (tag['name'].title(), dataname)
-            for arg in tag['arguments']:            
+            tagstructname = capitalized(tag['name']) + dataname
+            output += 'struct %s : public %s {\n' % (tagstructname, dataname)
+            
+            # Generate members
+            for arg in tag['arguments']:
+                argtype = arg['type'] # TODO: magically turn this type into a proper reference
+                isref = False
                 
-                argtype = arg[0] # TODO: magically turn this type into a proper reference
-                isOwned = False
                 for gdd in global_datadecls:
                     if gdd['name'] == argtype:
-                        isOwned = True
                         argtype = 'std::unique_ptr<%s>' % argtype
+                        isref = True
                         break
                 
-                argname = arg[1]
-                output += '    %s %s;\n' % (argtype, argname)
+                arg['isref'] = isref
+                arg['fulltype'] = argtype
+                if isref:
+                    arg['ptrreftype'] = arg['type'] + '*'
+                else:
+                    arg['ptrreftype'] = arg['type']
+                
+                argname = arg['name']
+                if isref:
+                    # We want to generate TWO members, one is a unique_ptr, the other is a reference to whatever's in the pointer
+                    output += '    %s %s_ptr;\n' % (argtype, argname)
+                    output += '    %s& %s() { return *%s_ptr; }\n' % (arg['type'], argname, argname)
+                    arg['member_name'] = argname + '_ptr'
+                else:
+                    output += '    %s %s;\n' % (argtype, argname)
+                    arg['member_name'] = argname
+            
+            # Generate constructor
+            output += '    %s(' % tagstructname
+            output += ', '.join('%s _%s' % (arg['ptrreftype'], arg['name']) for arg in tag['arguments'])
+            output += ') : '
+            #output += ', '.join('%s_ptr(_%s), %s(*_%s)' % (arg['name'], arg['name'], arg['name'], arg['name']) for arg in tag['arguments'])
+            output += ', '.join('%s(_%s)' % (arg['member_name'], arg['name']) for arg in tag['arguments'])
+            
+            output += ' { }\n'
+            
             output += '};\n'
         
         return output
