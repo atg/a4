@@ -139,7 +139,7 @@ def generate_function(m, isCase):
             returner = 'return '
         
         # Generate the main function
-        output = template_function(genname, genname.lower()) + '{\n'
+        output = template_function(genname, genname.lower()) + ' {\n'
         output += '    switch (%s.kind) {\n' % genname.lower()
         for case in gencases:
             output += '      case %s::Kind::%s:\n' % (genname, case['type'])
