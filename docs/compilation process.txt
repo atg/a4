@@ -1,0 +1,19 @@
+// Compilation process
+
+ [Source code]
+Lexing
+Parsing
+ [Parse tree]
+Primary semantic checking
+Type inference and checking
+ [Typed parse tree]
+Secondary semantic checking
+--- Code at this point is well-formed and valid ---
+Desugaring
+ [Core tree]
+Intra-module optimization
+Import resolution
+ [Program tree]
+Inter-module optimization
+Codegen
+ [Output]

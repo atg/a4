@@ -1,0 +1,188 @@
+Abstract Semantic Graph
+    After parsing Chocolat generates an abstract semantic graph for the whole problem. An AST will generally only include a particular file, and will include things which are not relevant (for example, module includes which can be resolved by the module system)
+    
+The ASG looks like this
+
+#define list(T) std::vector< T >
+#define optional(T) util::maybe< T >
+
+
+namespace sema {
+    struct Function {
+        Node* body;
+        bool isInternal;
+        FunctionType sig;
+        unsigned qualities; // FunctionQuality
+        
+        Scope scope;
+    };
+    struct Node {
+        
+    };
+    struct Scope {
+        
+    };
+    
+    struct Block : Node {
+        
+    };
+    struct {
+        
+    };
+    
+    struct Value : Node {
+        Type type;
+        variant(String, Number, List, Dict) value;
+    };
+    struct Call : Node {
+        Node function;
+        // It may or may not be possible to resolve a function name. Obviously if a function name _can_ be resolved
+        pointer(Function) function;
+        
+        list(Node) args;
+    };
+}
+
+struct CallExpr {
+    std::vector<Type> types;
+    std::vector<Expr> exprs;
+};
+
+// Int|Real, Int|Real
+// (a + b)
+
+// Constant folding
+
+// Function quality
+enum class FunctionQuality {
+    PURE       = 0b1,   // Pure functions do no IO, and do not call impure functions. For example, 
+    TERMINATES = 0b10,  // Terminating functions always terminate. For example, square(x) = x * x or sayhello() = print("Hello!"), but not while(n mod 2 != 1) n = next_perfect_number(n)
+    REENTRANT  = 0b100, // Reentrant functions are safe to call from inside. Reentrancy is slightly different from purity. A function may be pure but use a mutex, and a function may be reentrant but still call impure functions. 
+};
+
+// Build an annotated function call graph
+struct CallGraph {
+    boost::graph<std::string> calls;
+    
+};
+
+/* Finding pure functions:
+    All functions are either PURE, IMPURE or UNKNOWN.
+    We know some functions are impure, such as all foreign functions (that are not marked otherwise), and certain furrow functions such as print()
+    We know some functions are pure, such as string concatenation and division
+    Everything else is to be determined.
+    
+    An UNKNOWN-purity function that calls a single impure function is marked as IMPURE.
+    An UNKNOWN-purity function that calls nothing but known pure functions is marked as PURE.
+    This process continues until no changes are made.
+*/
+
+while (1) {
+    bool changedsomething = false;
+    for (const Function& fun : functions) {
+        
+        int pure = 0;
+        int impure = 0;
+        int total = 0;
+        for (const Function& calledfun : fun.calledFunctions) {
+            if (calledfun.purity == Purity::Pure) pure++;
+            else if (calledfun.purity == Purity::Impure) pure++;
+            total++;
+        }
+        
+        if (impure > 0) {
+            fun.purity = Purity::Impure;
+            changedsomething = true;
+        }
+        else if (pure == total) {
+            fun.purity = Purity::Pure;
+            changedsomething = true;
+        }
+    }
+    
+    if (!changedsomething)
+        break;
+}
+
+
+/* Finding terminating functions
+    This is considerably more tricky.
+    
+    4 states
+        NON_TERMINATING
+        PROBABLY_NON_TERMINATING
+        UNKNOWN
+        TERMINATES
+    
+    for the most part NON_TERMINATING is never used.
+    Functions that contain a while loop are PROBABLY_NON_TERMINATING
+*/
+
+
+
+
+
+
+Expr* optimize(const CallExpr& expr) {
+    
+    if (isLiteral(expr.args[0]) && isLiteral(expr.args[1])) {
+        
+        if (isNumber(expr.types[0]) && isNumber(expr.types[1])) {
+            // Add them together
+            // a * 10 ^ b + c * 10 ^ d
+        
+            uint64_t a = 
+            uint64_t b = 
+            uint64_t c = 
+            uint64_t d = 
+            
+            if (d > b) {
+                std::swap(a, c);
+                std::swap(b, d);
+            }
+            while (b > d) {
+                // Multiply by 10 until we get there
+                if (!can_safely_multiply(a, 10))
+                    return &expr;
+                a *= 10;
+                b -= 1;
+            }
+            
+            1 * 10 ^ 2 + 123 * 10 ^ 0
+            100 * 10
+        }
+        else if (isString(expr.types[0]) && isString(expr.types[1])) {
+            // OK then append the strings
+            return StringLiteral(cast<StringLiteral>(expr.args[0]).value + cast<StringLiteral>(expr.args[1]).value);
+        }
+        else if (isList(expr.types[0]) && isList(expr.types[1])) {
+            // 
+        }
+        else if (isMap(expr.types[0]) && isMap(expr.types[1])) {
+            // Append elements
+            
+        }
+        
+    }
+    
+    
+    
+    
+}
+
+// Transform 
+void optimize(CallExpr* expr) {
+    
+    
+    
+}
+
+
+template<typename To>
+const To& cast(const From& from) {
+    
+}
+
+struct Expr {
+    
+}

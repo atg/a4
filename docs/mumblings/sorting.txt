@@ -1,0 +1,22 @@
+-- Sorting
+
+-- Strategy
+--   use different sorting functions depending on the type
+--   expensive comparators should use a sort that minimises comparisons: e.g. timsort for strings
+--   simple comparators should use a sort that is fast: e.g. quicksort for integers
+--   special case depending on list length
+--     for example, optimal sorts for 0, 1, 2, 3, 4, 5, 6, etc elements can be implemented
+--     for medium sized sorts, insertion sort is good
+--   Moreover, sorts of a _huge_ number of elements can be done in parallel
+
+-- There is an interesting tradeoff between speed and stability
+-- While I want a language that eeks all performance out, I prefer the predictability of stable sorts
+-- So the default sort() will be stable, we could possible have an unstableSort() in addition to it
+
+-- Note that the compiler is free to use an unstable sort *where it can prove that it will do the same as a stable sort*. For instance, there is no difference between unstable and stable sorts when sorting integers in the usual way.
+
+
+-- Sorting is interesting because it is the intersection of algorithmic and practical optimization. Quicksort is not faster algorithmically, but it IS faster practically. Timsort is fast if comparisons are slow. And insertion sort sucks, but is a great choice for small lists nonetheless.
+
+
+

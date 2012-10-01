@@ -2,8 +2,8 @@
     #import <string>
     #import <cassert>
     
-    #import "ast.hpp"
-    #import "tokenizer.hpp"
+    #import "ast/ast.hpp"
+    #import "parse/tokenizer.hpp"
     
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wunused-parameter"

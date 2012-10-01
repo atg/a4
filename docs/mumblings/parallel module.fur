@@ -1,0 +1,41 @@
+-- module parallel
+
+-- import from parallel
+-- import parallel
+
+
+-- pchunk splits a list into chunks that can be operated on in parallel
+-- despite the convention, pchunk does not itself run in parallel, but it creates a number of chunks appropriate for computation in parallel
+-- usually this number is some combination of hardware.physicalCPUs() and hardware.logicalCPUs()
+:: [A] -> [[A]]
+pchunk(xs) =
+  phynum = hardware.physicalCPUCores()
+  lognum = hardware.logicalCPUCores()
+  
+  -- phy the number of physical cores, lognum is the number of logical cores (e.g. HT)
+  -- there's little reason to chunk twice for every
+  -- chunk at LEAST phynum, but no more than lognum
+  n = phynum + ceil(lognum / 2)
+  chunk(xs, n)
+  
+:: [A], (A -> B) -> [B]
+pmap
+
+:: [A], (A -> Bool) -> [A]
+pfilter
+
+:: [A], (A, A -> A) -> [A]
+pfold
+
+:: [A] -> [A]
+ptruthy(xs) = pmap(xs, isTruthy)
+pfalsy(xs) = pmap(xs, isFalsy)
+
+isFalsy [] = yes
+isFalsy 0 = yes
+isFalsy {} = yes
+isFalsy set() = yes
+
+:: []
+preverse xs =
+  reverse(pmap(pchunk(xs), reverse))

@@ -1,6 +1,6 @@
-#import "parser.hpp"
-#import "grammar.hpp"
-#import "tokenizer.hpp"
+#import "parse/parser.hpp"
+#import "parse/grammar.hpp"
+#import "parse/tokenizer.hpp"
 
 // Token cleaning. Get rid of consecutive newlines, etc
 std::deque<Token> clean(const std::deque<Token>& tokens) {

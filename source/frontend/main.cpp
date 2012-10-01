@@ -5,10 +5,10 @@
 #import <cstdlib>
 #import <cstdio>
 
-#import "ast.hpp"
-#import "tokenizer.hpp"
-#import "parser.hpp"
-#import "codegen.hpp"
+#import "ast/ast.hpp"
+#import "parse/tokenizer.hpp"
+#import "parse/parser.hpp"
+#import "codegen/codegen.hpp"
 
 // It pains me to do this
 #import <iostream>

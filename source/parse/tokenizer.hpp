@@ -1,6 +1,6 @@
 #import <deque>
 #import <string>
-#import "tokentypes.hpp"
+#import "parse/tokentypes.hpp"
 
 struct Token {
     int type;

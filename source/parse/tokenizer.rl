@@ -1,5 +1,5 @@
 #import <deque>
-#import "tokenizer.hpp"
+#import "parse/tokenizer.hpp"
 
 #define EMIT(t) \
   Token tok; \
@@ -58,8 +58,9 @@ main := |*
     "->" { EMIT(ARROW); };
     "?" { EMIT(QUESTIONMARK); };
     
-    "-"? digit+ { EMIT(NUMBER); };
-    
+    digit+ [kM] { EMIT(NUMBER); };
+    "0x" [a-fA-F0-9]+ { EMIT(HEXNUMBER); };
+        
     # [A-Z_][A-Z0-9_]* { EMIT(UPPERIDENT); };
     [a-z_][a-zA-Z0-9_]* { EMIT(IDENT); };
     [A-Z_][a-zA-Z0-9_]* { EMIT(TITLEIDENT); };    

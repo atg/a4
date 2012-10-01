@@ -1,0 +1,67 @@
+Inspired by [Stalin] (the Scheme compiler), I have made it my quest to create a "sufficiently smart compiler". Here's my definition of one:
+
+    A sufficiently smart compiler (from here on "SSC") accepts a high level language and compiles it to a low level language. It applies optimisations to achieve performance better than what a human programmer writing in the low level language directly could typically expect to achieve.
+
+Definitions of what are "high level" and "low level" change as hardware gets faster. Currently the highest level programming languages in general use are functional languages such as Haskell, and the lowest level languages generally used are C and C++.
+
+However, in the 70s and 80s, C and C++ were considered high level languages and assembly was "low level". C compilers *sucked* at optimisation. So LLVM would have been considered a "sufficiently smart compiler" in the 70s, given that it can output code better ASM than most assembly programmers can write (e.g. register allocation).
+
+- - -
+
+The key to creating an SSC is to design a *small language*. It's no coincidence that one of the only extant SSCs is for scheme (and a subset of scheme no less).
+
+Since we are designing a small language, choosing the features in the small language is crucial. We must be careful to not include any features which incur a large performance penalty (such as requiring garbage collection). At the same time, we need enough extra information to be able to do optimisations that the low level language cannot do.
+
+The best way to do this is to design a Core intermediate language, then embellish it with features that are implemented in terms of the Core language. This is the approach that GHC uses.
+
+Our core language is
+
+    Program {
+        Scope root;
+    }
+    Scope {
+        (Identifier => Function) functionTable;
+        (Identifier => Value) valueTable;
+        Type[] types;
+    }
+    Function {
+        Type type;
+        
+        Type[] returnTypes;
+        Type[] argumentTypes;
+        Type[] closureTypes;
+        
+        Variable[] arguments;
+        Variable[] closure;
+        Expr body;
+    }
+    Type {
+        String name;
+        Type[] arguments;
+        Type body;
+        String[] fieldNames; // used for `data` types which compile down to tuple types
+    }
+    
+    Expr { }
+    Call : Expr {
+        Identifier func;
+        Expr[]   arguments;
+    }
+    Identifier : Expr {
+        int identifier;
+    }
+    
+    // Kind of like { a; b; c; } in C
+    Sequence : Expr {
+        Expr[] statements;
+    }
+    
+    Value : Expr { }
+    StringValue : Value {
+        String value;
+    }
+    IntValue : Value {
+        int value;
+    }
+
+

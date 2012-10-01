@@ -1,43 +1,4 @@
-#import "codegen.hpp"
-
-void codegen(ParseTree tree, std::ostream& out) {
-    for (Decl* decl : tree.decls) {
-        codegen(decl, out);
-        out << '\n';
-    }
-}
-
-void codegen(Decl* decl, std::ostream& out) {
-    switch (decl->type) {
-        case DeclType::Function:
-            codegen(static_cast<FunctionDecl*>(decl), out);
-            break;
-        
-        case DeclType::Unspecified: break;
-    }
-}
-
-void codegen(FunctionDecl* decl, std::ostream& out) {    
-    out << "static " << "RETURN_TYPE" << ' ' << decl->name << '(';
-    
-    // Arguments
-    bool isFirst = true;
-    for (const std::string& param : decl->parameters) {
-        
-        if (!isFirst)
-            out << ", ";
-        else
-            isFirst = false;
-        
-        out << "PARAM_TYPE" << ' ' << param;
-    }
-    
-    out << ") {\n";
-    out << "    return ";
-    codegen(decl->body, out);
-    out << ";\n}";
-}
-
+#import "codegen/codegen.hpp"
 
 void codegen(Expr* expr, std::ostream& out) {
     switch (expr->type) {
@@ -50,14 +11,14 @@ void codegen(Expr* expr, std::ostream& out) {
         case ExprType::Member:
             codegen(static_cast<MemberExpr*>(expr), out);
             break;
-        
+
         case ExprType::Binary:
             codegen(static_cast<BinaryExpr*>(expr), out);
             break;
         case ExprType::Unary:
             codegen(static_cast<UnaryExpr*>(expr), out);
             break;
-        
+
         case ExprType::Number:
             codegen(static_cast<NumberLiteral*>(expr), out);
             break;
@@ -79,7 +40,7 @@ void codegen(Expr* expr, std::ostream& out) {
         case ExprType::Bool:
             codegen(static_cast<BoolLiteral*>(expr), out);
             break;
-        
+
         case ExprType::Unspecified: break;
     }
 }
@@ -92,7 +53,7 @@ void codegen(BinaryExpr* expr, std::ostream& out) {
     out << '(';
 
     if (expr->op == OperatorType::Power || expr->op == OperatorType::In || expr->op == OperatorType::Is || expr->op == OperatorType::Mod) {
-        
+
         if (expr->op == OperatorType::Power)
             out << "std::pow(";
         else if (expr->op == OperatorType::In)
@@ -101,7 +62,7 @@ void codegen(BinaryExpr* expr, std::ostream& out) {
             out << "furrow::isa(";
         else if (expr->op == OperatorType::Mod)
             out << "furrow::mod(";
-        
+
         codegen(expr->left, out);
         out << ", ";
         codegen(expr->right, out);
@@ -116,23 +77,23 @@ void codegen(BinaryExpr* expr, std::ostream& out) {
         switch (expr->op) {
             CODEGEN_OPERATOR(LogicalAnd, "&&");
             CODEGEN_OPERATOR(LogicalOr, "||");
-            
+
             CODEGEN_OPERATOR(Equals, "==");
             CODEGEN_OPERATOR(NotEqual, "!=");
             CODEGEN_OPERATOR(LessThan, '<');
             CODEGEN_OPERATOR(GreaterThan, '>');
             CODEGEN_OPERATOR(LessOrEqual, "<=");
             CODEGEN_OPERATOR(GreaterOrEqual, ">=");
-            
+
             CODEGEN_OPERATOR(Add, '+');
             CODEGEN_OPERATOR(Subtract, '-');
-            
+
             CODEGEN_OPERATOR(Multiply, '*');
             CODEGEN_OPERATOR(Divide, '/');
-            
+
             CODEGEN_OPERATOR(Negate, '-');
             CODEGEN_OPERATOR(LogicalNot, '!');
-            
+
             case OperatorType::Power: break;
             case OperatorType::In: break;
             case OperatorType::Is: break;
@@ -157,7 +118,7 @@ void codegen(UnaryExpr* expr, std::ostream& out) {
     switch (expr->op) {
         CODEGEN_OPERATOR(Negate, '-');
         CODEGEN_OPERATOR(LogicalNot, '!');
-        
+
         default:
             assert(0 && "Invalid unary operator in codegen(UnaryExpr)");
     }
@@ -174,19 +135,19 @@ void codegen(CallExpr* expr, std::ostream& out) {
     out << '(';
     codegen(expr->target, out);
     out << '(';
-    
+
     // Arguments
     bool isFirst = true;
     for (Expr* arg : expr->arguments) {
-        
+
         if (!isFirst)
             out << ", ";
         else
             isFirst = false;
-        
+
         codegen(arg, out);
     }
-    
+
     out << "))";
 }
 void codegen(SubscriptExpr* expr, std::ostream& out) {    

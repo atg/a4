@@ -2,17 +2,9 @@
 #import <cassert>
 #import <cstdio>
 #import <cstdlib>
-#import "tokenizer.hpp"
+#import "parse/tokenizer.hpp"
 
 struct Expr;
-struct Decl;
-
-struct ParseTree {
-    // For diagnostic reporting
-    int source_location;
-    
-    std::deque<Decl*> decls;
-};
 
 enum class ExprType {
     Unspecified = 0,
@@ -28,10 +20,6 @@ enum class ExprType {
     Function,
     Tuple,
     Bool,
-};
-enum class DeclType {
-    Unspecified = 0,
-    Function,
 };
 enum class OperatorType {
     
@@ -59,22 +47,6 @@ enum class OperatorType {
     
     Power = STARSTAR,
 };
-
-struct Decl {
-    DeclType type;
-};
-
-struct FunctionDecl : public Decl {
-    // FunctionType* signature;
-    std::string name;
-    std::deque<std::string> parameters;
-    Expr* body;
-
-    FunctionDecl(std::string name, std::deque<std::string>* parametersptr, Expr* body) : name(name), body(body), parameters(*parametersptr) {
-        type = DeclType::Function;
-    }
-};
-
 
 struct Expr {
     ExprType type;
@@ -237,63 +209,3 @@ struct BoolLiteral : public Expr {
         type = ExprType::Bool;
     }
 };
-
-
-enum class TypeType {
-    Unspecified = 0,
-    Variable,
-    Named,
-    List,
-    Dict,
-    Function,
-    Tuple,
-    Optional,
-}
-struct Type {
-    
-};
-struct TypeVariable : public Type {
-
-    std::string name;
-    TypeVariable(std::string name) : name(name) {
-        type = TypeType::Variable;
-    }
-};
-struct NamedType : public Type {
-    
-    std::string name;
-    NamedType(std::string name) : name(name) {
-        type = TypeType::Named;
-    }
-};
-struct ListType : public Type {
-    
-    Type* membertype;
-    ListType(Type* membertype) : membertype(membertype) {
-        type = TypeType::List;
-    }
-};
-struct DictType : public Type {
-
-    Type* keytype;
-    Type* valuetype;
-    DictType(Type* keytype, Type* valuetype) : keytype(keytype), valuetype(valuetype) {
-        type = TypeType::Dict;
-    }
-};
-struct FunctionType : public Type {
-
-    Type* keytype;
-    Type* valuetype;
-    FunctionType(Type* keytype, Type* valuetype) : keytype(keytype), valuetype(valuetype) {
-        type = TypeType::Function;
-    }
-};
-struct OptionalType : public Type {
-
-    Type* membertype;
-    ListType(Type* membertype) : membertype(membertype) {
-        type = TypeType::List;
-    }
-};
-

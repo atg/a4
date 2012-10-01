@@ -1,0 +1,41 @@
+T
+    is used if there is no avoiding the copy (either it's not good for performance (ints, structs, etc))
+T&
+    _in_place
+    is given as an additional function and usually compiled out if not used
+const T&
+    is used if possible
+T&&
+    _moved
+    is given as an additional function
+
+
+  0
+ 10
+ 11
+100
+
+const, lvalue, rvalue
+
+
+template<class T>
+static std::vector<T> reverse_in_place(std::vector<T>& vec) {
+    for (size_t i = 0, size_t n = vec.size(); i != n / 2; i++) {
+        std::swap(vec[i], vec[n - i - 1]);
+    }
+    return vec;
+}
+
+// This is actually quite hard
+template<class A, class B>
+static std::vector<T> map(std::vector<T>& xs, std::function<B(const A&)> f) {
+    int i = 0;
+    for (const A& x : xs) {
+        f(x);
+        
+    }
+}
+
+
+
+

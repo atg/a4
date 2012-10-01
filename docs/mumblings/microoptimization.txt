@@ -1,0 +1,5 @@
+Micro-optimization
+
+2. Use restrict for pointers and references that do not alias
+3. 
+

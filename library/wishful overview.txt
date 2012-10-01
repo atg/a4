@@ -1,0 +1,76 @@
+Furrow Standard Library
+
+
+-- Default functionality
+    /core
+        Core functionality that is included automatically. Equivalent to Prelude in Haskell
+
+-- Mathematics
+    /math
+        Mathematical functions
+    /complex
+        Complex numbers and functions on them.
+    /linear
+        Vectors, matrices, and other things from linear algebra
+    /random
+        Random number generation and various distributions
+    /graph
+        Graph theory functions
+    /bignum
+        BigInt, BigReal, Decimal and Rational classes
+
+-- Algorithms
+    /string
+        Extra algorithms on strings. Such as levenstein distance.
+
+-- Data structures
+    /queue
+    /stack
+    /deque
+    /priorityqueue
+    /set
+        Functions on Set objects
+    /list
+        Defines an array-backed linked list
+    /bag
+        A set that can hold multiple elements
+    /tree
+        A tree with multiple children, each node having an optional value
+
+-- Filesystem
+    /path
+        Operations on files and paths
+    /date
+        Defines a Date data structure and functions on dates. Also defines generalized Calendars and operations on those. Finally defines timezones.
+
+-- Networking
+    /http
+    /socket
+
+-- Processes
+    /spawn
+
+-- Concurrency and Parallelisation
+    /parallel
+
+-- Encoding and Decoding
+    /json
+        JSON encoding and decoding
+    /base64
+    /ini
+    /csv
+
+-- Cryptography
+    /hash
+    /hmac
+    /password
+        PBKDF2, bcrypt and scrypt
+    
+
+-- Misc
+    /colors
+        Functions for converting between color spaces and color models.
+    /sqlite3
+        Functions for interfacing with sqlite
+    /diff
+        Computing diffs

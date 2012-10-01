@@ -1,14 +1,24 @@
+#import <unordered_map>
+
+#import "ast/ast.hpp"
+
 struct Scope {
     Scope* global;
     Scope* parent;
     
     std::unordered_map<std::string, Decl*> symbols;
     
-    Decl* find(std::string ident) {
-        // TODO: Optimize. This is a stupidly slow way of doing it
-        if (symbols.count(ident))
-            return symbols[item];
-        return NULL;
+    Decl* find(const std::string& ident) {
+        auto it = symbols.find(ident);
+        
+        // If we didn't find a symbol, search upwards
+        if (it == symbols.end()) {
+            if (parent) {
+                return parent->find(ident);
+            return NULL;
+        }
+        
+        return *it;
     }
 };
 
@@ -19,8 +29,8 @@ Type* common_type_of(std::deque<Expr*> exprs) {
     
 }
 
-Type* type_of(UnaryExpr* expr) {
-    switch (expr.type) {
+Type* type_of(BinaryExpr* expr) {
+    switch (expr->type) {
         case OperatorType::LogicalAnd:
         case OperatorType::LogicalOr:
             return new NamedType("Bool");
@@ -44,10 +54,32 @@ Type* type_of(UnaryExpr* expr) {
         case OperatorType::Add:
             // Check that the objects are addable
                 // Real, Int, String, 
-            return ...;
+            /*
+                          42   3.14   "abc"   [yes, no]
+                       42 Int  Real   String  x
+                     3.14 Real Real   String  x
+                    "abc" Str  Str    String  x
+                [yes, no] x    x      x       List...
+                
+                The type of a list is as follows
+                          List [Any] [T]
+                     List List List  List
+                    [Any] List [Any] List
+                      [T] List List  [T]
+            */
+            
+            Type* lt = type_of(expr->left);
+            Type* rt = type_of(expr->right);
+            if (!lt || !rt)
+                return NULL;
+            
+            if (type_is_named(lt, "Int"))
+                
+            
+            return  || type_is_string(expr.type) || type_is_list(expr.type);
         case OperatorType::Subtract:
             // Check that the objects are subtractable
-            return ...;
+            return type_is_number(expr.type) || type_is_string(expr.type) || type_is_list(expr.type);
         
         case OperatorType::Multiply:
             // Check that the objects can be multiplied
@@ -118,7 +150,7 @@ Type* type_of(CallExpr* call) {
         // 3. Find the types of the arguments given to the call
         if (!hasArgumentTypes) {
             for (Expr* arg : call->arguments) {
-                argumentTypes.push_back(type_of(arg, scope->global()));
+                argumentTypes.push_back(type_of(arg, scope->global));
             }
         }
         
@@ -241,6 +273,12 @@ bool type_is_list(Type* t, bool allow_optional=true, bool allow_any=true) {
 }
 bool type_is_generic(Type* t) {
     // Generic types are either variables or Any
+}
+bool type_is_number(Type* t) {
+    
+}
+bool type_is_string(Type* t) {
+
 }
 bool type_is_convertable_to(Type* source, Type* destination) {
     
