@@ -58,8 +58,10 @@ GENERATE_END_REGEX = re.compile(r'%generate\s+([a-zA-Z0-9_]+)\n([\s\S]+?)\n%end\
 GENERATE_TEMPLATE_REGEX = re.compile(r'%template\s+([^\n]+)\n')
 GENERATE_CALL_TEMPLATE_REGEX = re.compile(r'%call\s+([^\n]+)\n')
 #GENERATE_CASE_REGEX = re.compile(r'%case\s+([^\s+]+)\s+([^\s+]+)\n([^\n]+)\n%')
-GENERATE_CASE_REGEX = re.compile(r'%%case\s+([^\s+]+)\s+([^\s+]+)')
+GENERATE_CASE_REGEX = re.compile(r'^\s*([a-zA-Z0-9_]+)\s+([a-zA-Z0-9_]+)$')
 #DATA_INNARDS_REGEX = re.compile(r'\s*([a-zA-Z0-9_]+)\s*\(([^\)]*)\)')
+
+CASE_END_REGEX = re.compile(r'%case\s+([a-zA-Z0-9_]+)\n([\s\S]+?)\n\s*%end\n')
 
 # Step one, walk the given directory to find .adt.cpp and .adt.hpp files
 rootdir = sys.argv[1]
@@ -85,26 +87,31 @@ def data_parse_function(m):
 def data_replace_function(m):
     return data_function(m, False)
 def generate_replace_function(m):
+    return generate_function(m, False)
+
+def generate_function(m, isCase):
     genname = m.groups()[0]
     geninner = m.groups()[1]
-    
+    print isCase
     # Parse out the template
-    gentemplate = GENERATE_TEMPLATE_REGEX.findall(geninner)[0]
-    gencalltemplate = GENERATE_CALL_TEMPLATE_REGEX.findall(geninner)
-    if not gencalltemplate:
-        funcname = re.findall(r'\s+([a-zA-Z0-9_]+)\(', gentemplate)[0]
-        gencalltemplate = funcname + '($$)'
-    else:
-        gencalltemplate = gencalltemplate[0]
+    if not isCase:
+        gentemplate = GENERATE_TEMPLATE_REGEX.findall(geninner)[0]
+        gencalltemplate = GENERATE_CALL_TEMPLATE_REGEX.findall(geninner)
+        if not gencalltemplate:
+            funcname = re.findall(r'\s+([a-zA-Z0-9_]+)\(', gentemplate)[0]
+            gencalltemplate = funcname + '($$)'
+        else:
+            gencalltemplate = gencalltemplate[0]
     
-    # Replace the $$
-    template_function = lambda tname, aname: gentemplate.replace('$$', tname + '& ' + aname)
+        # Replace the $$
+        template_function = lambda tname, aname: gentemplate.replace('$$', tname + '& ' + aname)
     
     # Parse out the cases
     currentcase = None
     gencases = []
     for line in geninner.splitlines():
         matchedcase = GENERATE_CASE_REGEX.findall(line)
+        print matchedcase
         if matchedcase:
             currentcase = {}
             gencases.append(currentcase)
@@ -115,30 +122,47 @@ def generate_replace_function(m):
         elif currentcase:
             currentcase['body'] += line + '\n'
     
-    
-    returner = ''
-    if not gentemplate.startswith('void '):
-        returner = 'return '
-    
-    # Generate the main function
-    output = template_function(genname, genname.lower()) + '{\n'
-    output += '    switch (%s.kind) {\n' % genname.lower()
-    for case in gencases:
-        output += '      case %s::Kind::%s:\n' % (genname, case['type'])
-        
-        invocation = gencalltemplate.replace('$$', 'static_cast<%s&>(%s)' % (case['type'] + genname, genname.lower()))
-        
-        output += '        %s%s;\n' % (returner, invocation)
-    output += '    }\n'
-    output += '}\n'
-    
-    # Generate the other functions
-    for case in gencases:
-        output += template_function(case['type'] + genname, case['name']) + '{\n'
-        output += case['body']
+    output = ''
+    if isCase:
+        # Generate the main function
+        output = '\nswitch (%s.kind) {\n' % genname.lower()
+        for case in gencases:
+            output += '  case %s::Kind::%s: {\n' % (genname, case['type'])
+            output += '    %s& %s = static_cast<%s&>(%s);\n' % (case['type'], case['name'], case['type'], genname.lower())
+            output += '    %s' % case['body']
+            output += '    break;\n'
+            output += '  }\n'
         output += '}\n'
+        
+        return output
+    else:
+        returner = ''
+        if not gentemplate.startswith('void '):
+            returner = 'return '
+        
+        # Generate the main function
+        output = template_function(genname, genname.lower()) + '{\n'
+        output += '    switch (%s.kind) {\n' % genname.lower()
+        for case in gencases:
+            output += '      case %s::Kind::%s:\n' % (genname, case['type'])
+            
+            invocation = gencalltemplate.replace('$$', 'static_cast<%s&>(%s)' % (case['type'] + genname, genname.lower()))
+            
+            output += '        %s%s;\n' % (returner, invocation)
+        output += '    }\n'
+        output += '}\n'
+        
+        # Generate the other functions
+        for case in gencases:
+            output += template_function(case['type'] + genname, case['name']) + '{\n'
+            output += case['body']
+            output += '}\n'
     
     return output
+
+
+def case_replace_function(m):
+    return generate_function(m, True)
 
 def data_function(m, shouldadd):
     dataname = m.groups()[0]
@@ -243,6 +267,9 @@ for filepath in filepaths:
         
         # Replace %generate -> %end
         src = GENERATE_END_REGEX.sub(generate_replace_function, src)
+        
+        # Replace %case -> %end
+        src = CASE_END_REGEX.sub(case_replace_function, src)
         
         # Create a file without the .adt.
         newfilepath = filepath.replace('.adt.', '.')
