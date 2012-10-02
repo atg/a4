@@ -58,42 +58,42 @@ struct Expr {
     Kind kind;
 };
 struct BinaryExpr : public Expr {
-    std::unique_ptr<Expr> left_ptr;
+    std::shared_ptr<Expr> left_ptr;
     Expr& left() { return *left_ptr; }
     BinaryOperator op;
-    std::unique_ptr<Expr> right_ptr;
+    std::shared_ptr<Expr> right_ptr;
     Expr& right() { return *right_ptr; }
     BinaryExpr(Expr* _left, BinaryOperator _op, Expr* _right) : left_ptr(_left), op(_op), right_ptr(_right) { }
 };
 struct UnaryExpr : public Expr {
-    std::unique_ptr<Expr> expr_ptr;
+    std::shared_ptr<Expr> expr_ptr;
     Expr& expr() { return *expr_ptr; }
     UnaryOperator op;
     UnaryExpr(Expr* _expr, UnaryOperator _op) : expr_ptr(_expr), op(_op) { }
 };
 struct MemberExpr : public Expr {
-    std::unique_ptr<Expr> target_ptr;
+    std::shared_ptr<Expr> target_ptr;
     Expr& target() { return *target_ptr; }
     std::string field;
     MemberExpr(Expr* _target, std::string _field) : target_ptr(_target), field(_field) { }
 };
 struct IsExpr : public Expr {
-    std::unique_ptr<Expr> expr_ptr;
+    std::shared_ptr<Expr> expr_ptr;
     Expr& expr() { return *expr_ptr; }
-    std::unique_ptr<Type> oftype_ptr;
+    std::shared_ptr<Type> oftype_ptr;
     Type& oftype() { return *oftype_ptr; }
     IsExpr(Expr* _expr, Type* _oftype) : expr_ptr(_expr), oftype_ptr(_oftype) { }
 };
 struct CallExpr : public Expr {
-    std::unique_ptr<Expr> target_ptr;
+    std::shared_ptr<Expr> target_ptr;
     Expr& target() { return *target_ptr; }
     std::vector<std::shared_ptr<Expr>> arguments;
     CallExpr(Expr* _target, std::vector<std::shared_ptr<Expr>> _arguments) : target_ptr(_target), arguments(_arguments) { }
 };
 struct SubscriptExpr : public Expr {
-    std::unique_ptr<Expr> target_ptr;
+    std::shared_ptr<Expr> target_ptr;
     Expr& target() { return *target_ptr; }
-    std::unique_ptr<Expr> value_ptr;
+    std::shared_ptr<Expr> value_ptr;
     Expr& value() { return *value_ptr; }
     SubscriptExpr(Expr* _target, Expr* _value) : target_ptr(_target), value_ptr(_value) { }
 };
@@ -123,7 +123,7 @@ struct DictExpr : public Expr {
 };
 struct FunctionExpr : public Expr {
     std::vector<std::string> parameters;
-    std::unique_ptr<Expr> body_ptr;
+    std::shared_ptr<Expr> body_ptr;
     Expr& body() { return *body_ptr; }
     FunctionExpr(std::vector<std::string> _parameters, Expr* _body) : parameters(_parameters), body_ptr(_body) { }
 };

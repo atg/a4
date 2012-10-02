@@ -26,21 +26,21 @@ struct VariableType : public Type {
     VariableType(std::string _name) : name(_name) { }
 };
 struct ListType : public Type {
-    std::unique_ptr<Type> of_ptr;
+    std::shared_ptr<Type> of_ptr;
     Type& of() { return *of_ptr; }
     ListType(Type* _of) : of_ptr(_of) { }
 };
 struct DictType : public Type {
-    std::unique_ptr<Type> key_ptr;
+    std::shared_ptr<Type> key_ptr;
     Type& key() { return *key_ptr; }
-    std::unique_ptr<Type> value_ptr;
+    std::shared_ptr<Type> value_ptr;
     Type& value() { return *value_ptr; }
     DictType(Type* _key, Type* _value) : key_ptr(_key), value_ptr(_value) { }
 };
 struct FunctionType : public Type {
-    std::unique_ptr<Type> from_ptr;
+    std::shared_ptr<Type> from_ptr;
     Type& from() { return *from_ptr; }
-    std::unique_ptr<Type> to_ptr;
+    std::shared_ptr<Type> to_ptr;
     Type& to() { return *to_ptr; }
     FunctionType(Type* _from, Type* _to) : from_ptr(_from), to_ptr(_to) { }
 };
@@ -49,7 +49,7 @@ struct TupleType : public Type {
     TupleType(std::vector<std::shared_ptr<Type>> _items) : items(_items) { }
 };
 struct OptionalType : public Type {
-    std::unique_ptr<Type> of_ptr;
+    std::shared_ptr<Type> of_ptr;
     Type& of() { return *of_ptr; }
     OptionalType(Type* _of) : of_ptr(_of) { }
 };

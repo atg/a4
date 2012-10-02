@@ -1,8 +1,10 @@
 #import <string>
 #import <vector>
 
+#import "ast/ast.hpp"
+
 #ifndef fmt
-#define fmt(streamexpr) ((std::ostringstream() << streamexpr).str())
+#define fmt(streamexpr) ({ std::ostringstream oss; oss << streamexpr; oss.str(); })
 #endif
 
 struct Diagnostic {
@@ -21,6 +23,10 @@ struct Diagnostic {
     long indexStart;
     long indexEnd;
     
+    void populateFrom(Expr& expr) {
+        // TODO
+    }
+    
     // long line;
     // long column;
     
@@ -28,7 +34,7 @@ struct Diagnostic {
 };
 
 struct DiagnosticContext {
-    std::vector diagnostics;
+    std::vector<Diagnostic> diagnostics;
     
     void push(Diagnostic d) {
         diagnostics.push_back(d);

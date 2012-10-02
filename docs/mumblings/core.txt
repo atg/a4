@@ -1,0 +1,51 @@
+Literals
+    42 : Int
+    3.14 : Real
+    "Hello World" : String
+    (a : τ₁, b : τ₂, c : τ₃) : Tuple(τ₁)(τ₂)(τ₃)
+
+Function Application
+    f(x) : τ
+
+Let Binding
+    let $a : τ = x in u
+
+Lambdas
+    (λ $a : τ. x) : σ
+
+Type
+    Type Literals
+    T(τ)
+
+let
+    $0 = 10        (pure; no dependencies)
+    $1 = 20        (pure; no dependencies)
+    $2 = input()   (impure; no dependencies)
+    $3 = $1        (pure; depends on $1)
+    $4 = input()   (impure; depends on last non-pure, which is $2)
+    $5 = $3        (pure; depends on $3, $1)
+
+
+%data IR
+
+%all (Type tau)
+
+var   (uint64_t id)
+lit   (Literal value)
+tuple (std::vector<std::shared_ptr<IR>> items)
+app   (Exp target, Exp arg)
+let   (std::vector<<std::tuple<>>, ptr<IR>)
+
+%end
+
+
+let
+
+
+For example
+    x = 0
+    while (x < 100) { x += 3 }
+
+would compile into the Core IR
+    $1 = 0
+    $2 = while (\x. x < 100) (\x. x + 3) $1

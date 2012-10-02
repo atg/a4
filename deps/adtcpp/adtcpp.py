@@ -51,6 +51,7 @@ import os
 import re
 
 DATA_END_REGEX = re.compile(r'%data\s+([a-zA-Z0-9_]+)\n([\s\S]+?)\n%end\n')
+DATA_ALL_INNARDS_REGEX = re.compile(r'\s*(%all%)\s*\(([^\)]*)\)')
 DATA_INNARDS_REGEX = re.compile(r'\s*([a-zA-Z0-9_]+)\s*\(([^\)]*)\)')
 
 
@@ -162,12 +163,8 @@ def generate_function(m, isCase):
 def case_replace_function(m):
     return generate_function(m, True)
 
-def data_function(m, shouldadd):
-    dataname = m.groups()[0]
-    datainner = m.groups()[1]
-    
-    tags = []
-    for matchgroup in DATA_INNARDS_REGEX.findall(datainner):
+def findtags(matches, dest):
+    for matchgroup in matches:
         args = []
         for arg in matchgroup[1].split(','):
             type_and_name = arg.strip().split()
@@ -178,10 +175,51 @@ def data_function(m, shouldadd):
                 'name': type_and_name[1]
             })
         
-        tags.append({
+        dest.append({
             'name': matchgroup[0],
             'arguments': args
         })
+
+def generatemembers(tag):
+    output = ''
+    for arg in tag['arguments']:
+        argtype = arg['type'] # TODO: magically turn this type into a proper reference
+        isref = False
+        
+        for gdd in global_datadecls:
+            if gdd['name'] == argtype:
+                argtype = 'std::shared_ptr<%s>' % argtype
+                isref = True
+                break
+        
+        arg['isref'] = isref
+        arg['fulltype'] = argtype
+        if isref:
+            arg['ptrreftype'] = arg['type'] + '*'
+        else:
+            arg['ptrreftype'] = arg['type']
+        
+        argname = arg['name']
+        if isref:
+            # We want to generate TWO members, one is a unique_ptr, the other is a reference to whatever's in the pointer
+            output += '    %s %s_ptr;\n' % (argtype, argname)
+            output += '    %s& %s() { return *%s_ptr; }\n' % (arg['type'], argname, argname)
+            arg['member_name'] = argname + '_ptr'
+        else:
+            output += '    %s %s;\n' % (argtype, argname)
+            arg['member_name'] = argname
+    return output
+
+def data_function(m, shouldadd):
+    dataname = m.groups()[0]
+    datainner = m.groups()[1]
+    
+    alltags = []
+    findtags(DATA_ALL_INNARDS_REGEX.findall(datainner), alltags)
+    alltag = alltags[0] if alltags else None
+        
+    tags = []
+    findtags(DATA_INNARDS_REGEX.findall(datainner), tags)
     
     if shouldadd:
         # add to global_datadecls
@@ -201,46 +239,26 @@ def data_function(m, shouldadd):
             output += '        %s,\n' % capitalized(tag['name'])
         output += '    };\n'
         output += '    Kind kind;\n'
+        
+        if alltag:
+            output += generatemembers(alltag)
+        
         output += '};\n'
         
         for tag in tags:
+            concatenatedargs = alltag['arguments'] + tag['arguments'] if alltag else tag['arguments']
             tagstructname = capitalized(tag['name']) + dataname
             output += 'struct %s : public %s {\n' % (tagstructname, dataname)
             
             # Generate members
-            for arg in tag['arguments']:
-                argtype = arg['type'] # TODO: magically turn this type into a proper reference
-                isref = False
-                
-                for gdd in global_datadecls:
-                    if gdd['name'] == argtype:
-                        argtype = 'std::unique_ptr<%s>' % argtype
-                        isref = True
-                        break
-                
-                arg['isref'] = isref
-                arg['fulltype'] = argtype
-                if isref:
-                    arg['ptrreftype'] = arg['type'] + '*'
-                else:
-                    arg['ptrreftype'] = arg['type']
-                
-                argname = arg['name']
-                if isref:
-                    # We want to generate TWO members, one is a unique_ptr, the other is a reference to whatever's in the pointer
-                    output += '    %s %s_ptr;\n' % (argtype, argname)
-                    output += '    %s& %s() { return *%s_ptr; }\n' % (arg['type'], argname, argname)
-                    arg['member_name'] = argname + '_ptr'
-                else:
-                    output += '    %s %s;\n' % (argtype, argname)
-                    arg['member_name'] = argname
+            output += generatemembers(tag)
             
             # Generate constructor
             output += '    %s(' % tagstructname
-            output += ', '.join('%s _%s' % (arg['ptrreftype'], arg['name']) for arg in tag['arguments'])
+            output += ', '.join('%s _%s' % (arg['ptrreftype'], arg['name']) for arg in concatenatedargs)
             output += ') : '
             #output += ', '.join('%s_ptr(_%s), %s(*_%s)' % (arg['name'], arg['name'], arg['name'], arg['name']) for arg in tag['arguments'])
-            output += ', '.join('%s(_%s)' % (arg['member_name'], arg['name']) for arg in tag['arguments'])
+            output += ', '.join('%s(_%s)' % (arg['member_name'], arg['name']) for arg in concatenatedargs)
             
             output += ' { }\n'
             
