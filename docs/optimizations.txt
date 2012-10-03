@@ -1,0 +1,88 @@
+Beta reduction
+    (app (lam [x] E) x) => E
+
+
+Eta reduction
+    (lam [x] (app E x)) => E
+
+
+Let concatenation
+    (let (a E1) (b E2)
+        (let (c E3) (d E4)))
+  =>
+    (let (a E1) (b E2) (c E3) (d E4))
+
+
+Constant propogation
+    (let (a 10) (b a))
+  =>
+    (let (b 10))
+
+
+Dead store
+    (let [(a E)])
+    A dead store is one that has only pure dependents, or no dependents at all. Such stores can be removed
+    (The corollary is that any program that does not output its computations in some way will hopefully be reduced to nothing)
+
+
+Common Subexpression Elimination
+    Say you have
+        let a = x + y % z
+            b = a + y % z
+    
+    This can be optimized to
+        let yz = y % z
+            a = x + yz
+            b = a + yz
+
+
+Inlining (to start with)
+    At the start, it is very useful to inline as much as possible, since it increases the number of optimizations we can do.
+    
+    It may be that a particular optimization is only applicable at certain times. If we inline FIRST then the optimizer can modify the function in question to suit the requirements of its caller.
+    
+    However, this poses a problem...
+
+
+Uninlining (to end with)
+    Having lots of duplicates of the same function is slow. There is only so much instruction cache, and it must not be wasted. It also leads to big executables.
+    
+    So once we have inlined everything, then done all the optimizations, it's time to uninline it! It may be that some functions are exactly the same: they can be turned into a single function. It may be that some functions are *almost* the same: they can be turned into a single function with an extra parameter.
+    
+    We should uninline as much as possible. Nevertheless, in some cases it may be painfully obvious that the function should not be inlined. Obviously (a * b + c) is not a good candidate for uninlining.
+
+
+Recursion analysis
+    Determine expressions that trivially terminate. For instance
+        (+ (+ a b) c)
+    Obviously terminates since the only applications are to "+", which does not call any functions that might evaluate the given expression.
+    
+    So in general an expression E trivially terminates if:
+        E contains no applications of functions that apply a superexpression of E.
+    
+    How do we determine this?
+    
+    First of all we have to determine the given function being applied. The application may be direct, as in (app (lam [x] ...) ...), or it may be indirect, through a variable. In such a case, may get a set of functions that may fit that variable.
+    
+    A function has only two things available to it
+        Its arguments. If none of the argument types contain function types then we can assume they are safe.
+        Its bound variables. Again, if none of these are function types, then we are safe.
+    
+    Most of the time an application will be of a function in the root let expression. Since these functions cannot see anything other than their arguments, they necessarily cannot apply superexpressions of E.
+    
+    A function 
+
+
+Purity analysis
+    Mark nodes as either Pure, Impure or Undefined
+        Literals are Pure
+        An application of a pure function is Pure
+        An application of an impure function is Impure
+        Let expressions are Pure if all their subexpressions are Pure                    [Note: Pure let expressions are very interesting]
+        A subset of functions are Impure, such as
+            print(), abort(), input(), etc
+
+
+Dependency analysis
+    For each binding in a let expression, determine its dependencies and dependees (as a set of integers).
+
